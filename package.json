@@ -1,0 +1,14 @@
+{
+  "name": "shoppinglist",
+  "version": "1.0.0",
+  "description": "Shopping list desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Ross Hoyt",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^9.2.0"
+  }
+}
