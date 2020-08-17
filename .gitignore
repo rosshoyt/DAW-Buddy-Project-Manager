@@ -1,3 +1,6 @@
+# Build directory
+release-builds/
+
 # ELECTRON .gitignore
 .DS_Store
 .env
