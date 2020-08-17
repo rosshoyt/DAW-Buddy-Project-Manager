@@ -5,7 +5,7 @@ const path = require('path');
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 
 // SET ENV
-process.env.NODE_ENV = 'production';
+//process.env.NODE_ENV = 'production';
 
 let mainWindow;
 let addWindow;
@@ -78,6 +78,20 @@ ipcMain.on('item:add', function(e, item){
 // Create menu template
 const mainMenuTemplate = [
     {
+        label: process.platform == 'darwin' ? '' :app.getName(),
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideothers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      },
+    {
         label: 'File',
         submenu: [
             {
@@ -102,11 +116,6 @@ const mainMenuTemplate = [
         ]
     }
 ];
-
-// If OSX, add empty object to menu
-if (process.platform == 'darwin') {
-    mainMenuTemplate.unshift({});
-}
 
 // Add developer tools option if in dev
 if (process.env.NODE_ENV !== 'production') {
