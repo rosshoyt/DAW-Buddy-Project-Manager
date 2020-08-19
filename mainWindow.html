@@ -1,90 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <title>DAW-Buddy</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <title>DAW-Buddy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 </head>
+
 <body>
-    <nav>
-        <div class="nav-wrapper">
-            <a class="brand-logo center">DAW-Buddy</a>
-        </div>
-    </nav>
-    <body>
-      <!-- Page Content goes here -->
-      <a class="waves-effect waves-light btn-large" onclick="clickButton()"><!--i class="material-icons left">home</i-->Select Folder</a>
-      <!--button onclick="clickButton()">Set Path</button-->
-      <script>
+  <nav>
+    <div class="nav-wrapper">
+      <a class="brand-logo center">DAW-Buddy</a>
+    </div>
+  </nav>
+
+  <body>
+    <a class="waves-effect waves-light btn-small" onclick="clickButton()">
+      <!--i class="material-icons left">home</i-->Add Search Folder</a>
+    <script>
       const ipcRenderer = require('electron');
 
-
-
-      function clickButton(){
+      function clickButton() {
         const { dialog } = require('electron').remote;
+        const ul = document.querySelector('ul');
 
-        //function {
-          // dialog.showOpenDialog({
-          //   properties: ['openDirectory']
-          //
-          // }, selectedFiles => {
-          //   console.log(selectedFiles);
-          // });
-        //}
-
-
-        //var result = dialog.showOpenDialog({ properties: ['openDirectory'] });
-        //console.log("hello");
-
-        dialog.showOpenDialog( {
+        dialog.showOpenDialog({
           properties: ['openDirectory']
         }).then(result => {
-          console.log('hello');
           console.log(result.canceled);
           console.log(result.filePaths);
-          document.getElementById("currentDir").innerHTML = result.filePaths;
+          ul.className = 'collection';
+          const li = document.createElement('li');
+          li.className = 'collection-item';
+          const itemText = document.createTextNode(result.filePaths);
+          li.appendChild(itemText);
+          ul.appendChild(li);
+
+          // update list's label message:
+          var x = document.getElementById("folderslist").childElementCount;
+          document.getElementById("folderslistlabel").innerHTML = x == 0 ? 'Add a search folder to get started' : 'Folder(s) to Search:';
+
+
         }).catch(err => {
           console.log(err);
         });
 
-
-        //ipcRenderer.send('click-button','true')
       }
-      </script>
-      <div id="currentDir">Select a directory</div>
-    </body>
-    <ul></ul>
-    <script>
+    </script>
+    <div>
+      <label id="folderslistlabel">Add a search folder to get started</label>
+      <ul id="folderslist"></ul>
+      <script>
         const electron = require('electron');
-        const {ipcRenderer} = electron;
+        const { ipcRenderer } = electron;
         const ul = document.querySelector('ul');
 
         // Add item
-        ipcRenderer.on('item:add', function(e, item){
-            ul.className = 'collection';
-            const li = document.createElement('li');
-            li.className = 'collection-item';
-            const itemText = document.createTextNode(item);
-            li.appendChild(itemText);
-            ul.appendChild(li);
+        ipcRenderer.on('item:add', function (e, dir) {
+          ul.className = 'collection';
+          const li = document.createElement('li');
+          li.className = 'collection-item';
+          const itemText = document.createTextNode(dir);
+          li.appendChild(itemText);
+          ul.appendChild(li);
         });
 
         // Clear items
-        ipcRenderer.on('item:clear', function(){
-            ul.innerHTML = '';
-            ul.className = '';
+        ipcRenderer.on('item:clear', function () {
+          ul.innerHTML = '';
+          ul.className = '';
         });
 
         // Remove item
         ul.addEventListener('dblclick', removeItem);
 
-        function removeItem(e){
-            e.target.remove();
-            if(ul.children.length == 0){
-                ul.className = '';
-            }
-
+        function removeItem(e) {
+          e.target.remove();
+          if (ul.children.length == 0) {
+            ul.className = '';
+          }
         }
-
-    </script>
-</body>
+      </script>
+    </div>
+  </body>
 </html>

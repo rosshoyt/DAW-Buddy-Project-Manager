@@ -75,7 +75,13 @@ ipcMain.on('item:add', function(e, item){
 
 })
 
-//ipcMain.on('')
+
+// TODO Catch dir:add
+// ipcMain.on('dir:add', function(e, dir){
+//     console.log("Inside dir:add", dir);
+//     mainWindow.webContents.send('dir:add', dir);
+// })
+
 
 // Create menu template
 const mainMenuTemplate = [
