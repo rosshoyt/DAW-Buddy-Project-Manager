@@ -43,8 +43,8 @@ function createAddWindow() {
         width: 300,
         height: 200,
         title: 'Add Shopping List Item',
-        
-       
+
+
         // TODO Implement secure solution https://stackoverflow.com/a/57049268
         // Solves Uncaught ReferenceError: 'require' is not defined
         webPreferences: {
@@ -64,7 +64,7 @@ function createAddWindow() {
         addWindow = null;
     });
 
-    
+
 }
 
 // Catch item:add
@@ -74,6 +74,8 @@ ipcMain.on('item:add', function(e, item){
     addWindow.close();
 
 })
+
+//ipcMain.on('')
 
 // Create menu template
 const mainMenuTemplate = [

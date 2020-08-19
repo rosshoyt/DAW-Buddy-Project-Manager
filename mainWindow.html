@@ -1,15 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>ShoppingList</title>
+    <title>DAW-Buddy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 </head>
 <body>
     <nav>
         <div class="nav-wrapper">
-            <a class="brand-logo center">ShoppingList</a>
+            <a class="brand-logo center">DAW-Buddy</a>
         </div>
     </nav>
+    <body>
+      <!-- Page Content goes here -->
+      <a class="waves-effect waves-light btn-large" onclick="clickButton()"><!--i class="material-icons left">home</i-->Select Folder</a>
+      <!--button onclick="clickButton()">Set Path</button-->
+      <script>
+      const ipcRenderer = require('electron');
+
+
+
+      function clickButton(){
+        const { dialog } = require('electron').remote;
+
+        //function {
+          // dialog.showOpenDialog({
+          //   properties: ['openDirectory']
+          //
+          // }, selectedFiles => {
+          //   console.log(selectedFiles);
+          // });
+        //}
+
+
+        //var result = dialog.showOpenDialog({ properties: ['openDirectory'] });
+        //console.log("hello");
+
+        dialog.showOpenDialog( {
+          properties: ['openDirectory']
+        }).then(result => {
+          console.log('hello');
+          console.log(result.canceled);
+          console.log(result.filePaths);
+          document.getElementById("currentDir").innerHTML = result.filePaths;
+        }).catch(err => {
+          console.log(err);
+        });
+
+
+        //ipcRenderer.send('click-button','true')
+      }
+      </script>
+      <div id="currentDir">Select a directory</div>
+    </body>
     <ul></ul>
     <script>
         const electron = require('electron');
@@ -23,15 +65,15 @@
             li.className = 'collection-item';
             const itemText = document.createTextNode(item);
             li.appendChild(itemText);
-            ul.appendChild(li); 
+            ul.appendChild(li);
         });
 
-        // Clear items 
+        // Clear items
         ipcRenderer.on('item:clear', function(){
             ul.innerHTML = '';
             ul.className = '';
         });
-        
+
         // Remove item
         ul.addEventListener('dblclick', removeItem);
 
