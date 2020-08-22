@@ -1,7 +1,7 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
-const fs = require('fs'); 
+const fs = require('fs');
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 
@@ -92,31 +92,40 @@ ipcMain.on('startscan', function(e, directories){
 
     // Scan directories, extract relevant data and return results to renderer thread
     // TODO ensure no duplicate paths are searched unnecissarily
-    const files = getAllAbletonProjectFiles(directories[0]);
-    console.log('All Ableton files found in ' , directories[0]);
+    const files = getAllAbletonProjectDirectories(directories[0]);
+    console.log('All Ableton directories found in ' , directories[0]);
     files.forEach((item,index) => {
         console.log({ index, item });
     });
-   
+
 
 });
 
 
-const getAllAbletonProjectFiles = function(dirPath, arrayOfFiles) {
+const getAllAbletonProjectDirectories = function(dirPath, arrayOfProjects) {
   files = fs.readdirSync(dirPath);
 
-  arrayOfFiles = arrayOfFiles || [];
+  arrayOfProjects = arrayOfProjects || [];
 
   files.forEach(function(file) {
     if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-      arrayOfFiles = getAllAbletonProjectFiles(dirPath + "/" + file, arrayOfFiles);
+      arrayOfProjects = getAllAbletonProjectDirectories(dirPath + "/" + file, arrayOfProjects);
     } else {
-      if(path.extname(file) == '.als')
-        arrayOfFiles.push(path.join(__dirname, dirPath, "/", file));
+      if(path.extname(file) == '.als'){
+        if(arrayOfProjects.includes(dirPath)){
+          // project has been added
+        } else{
+          // add project to list
+          //arrayOfProjects.push(path.join(__dirname, dirPath, "/", file));
+          arrayOfProjects.push(dirPath);
+        }
+
+
+      }
     }
   });
 
-  return arrayOfFiles;
+  return arrayOfProjects;
 }
 
 // function getExtension(filename) {
