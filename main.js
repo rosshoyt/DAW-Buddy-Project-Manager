@@ -73,14 +73,23 @@ ipcMain.on('item:add', function(e, item){
     mainWindow.webContents.send('item:add', item);
     addWindow.close();
 
-})
+});
 
 
-// TODO Catch dir:add
+// TODO Could catch dir:add here to process on main thread
 // ipcMain.on('dir:add', function(e, dir){
 //     console.log("Inside dir:add", dir);
 //     mainWindow.webContents.send('dir:add', dir);
 // })
+
+// Catch startscan
+ipcMain.on('startscan', function(e, directories){
+    console.log('[Main Thread] Caught startscan! Directories to scan:');
+    directories.forEach((item, index) => {
+        console.log({ index, item })
+    });
+    // TODO implement directory scanning and return results to renderer thread
+});
 
 
 // Create menu template

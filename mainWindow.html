@@ -17,7 +17,7 @@
     <a class="waves-effect waves-light btn-large" onclick="clickButton()">
       <!--i class="material-icons left">home</i-->Add Search Folder</a>
     <script>
-      const ipcRenderer = require('electron');
+      const {ipcRenderer} = require('electron');
 
       function clickButton() {
         const { dialog } = require('electron').remote;
@@ -26,8 +26,9 @@
         dialog.showOpenDialog({
           properties: ['openDirectory']
         }).then(result => {
-          console.log(result.canceled);
-          console.log(result.filePaths);
+          //console.log(result.canceled);
+          //console.log(result.filePaths);
+
           ul.className = 'collection';
           const li = document.createElement('li');
           li.className = 'collection-item';
@@ -35,10 +36,10 @@
           li.appendChild(itemText);
           ul.appendChild(li);
 
-          // update UI based on number of list elements:
+          // Update UI based on number of list elements in directory list:
           var x = document.getElementById("folderslist").childElementCount;
           var listLabelText = '';
-          //var toggleStartButtonDisabled = false; // TODO refactor startButton toggle code
+          //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
           var startButton = document.querySelector("#startscanbtn");
           if(x == 0){
             listLabelText = 'Add a search folder to get started';
@@ -61,13 +62,40 @@
 
       }
     </script>
-    <a class="waves-effect waves-light btn-large right disabled" id="startscanbtn">Start Scan</a>
+    <a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a>
+    <script>
+      //const electron = require('electron');
+      //const { ipcRenderer } = electron;
+
+      function clickStart() {
+        console.log("Clicked start!");
+        
+        let folders = document.getElementById("folderslist").querySelectorAll('li');
+
+        // folders.forEach((item, index) => {
+        //   console.log({ index, item })
+        // });
+
+        //console.log(folders);
+        if(folders.length > 0){
+          console.log("More than 0 folders selected, sending to main thread");
+          var folderPaths = [];
+          // convert each collection item into a string path
+          folders.forEach((item, index) => {
+            folderPaths.push(item.innerText);
+          });
+          
+          // send to main thread
+          ipcRenderer.send('startscan', folderPaths);
+        }
+      }
+    </script>
     <div>
       <label id="folderslistlabel">Add a search folder to get started</label>
       <ul id="folderslist"></ul>
       <script>
-        const electron = require('electron');
-        const { ipcRenderer } = electron;
+        //const electron = require('electron');
+        //const { ipcRenderer } = electron;
         const ul = document.querySelector('ul');
 
         // Add item
