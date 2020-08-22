@@ -1,6 +1,7 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
+const fs = require('fs'); 
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 
@@ -86,11 +87,41 @@ ipcMain.on('item:add', function(e, item){
 ipcMain.on('startscan', function(e, directories){
     console.log('[Main Thread] Caught startscan! Directories to scan:');
     directories.forEach((item, index) => {
-        console.log({ index, item })
+        console.log({ index, item });
     });
-    // TODO implement directory scanning and return results to renderer thread
+
+    // Scan directories, extract relevant data and return results to renderer thread
+    // TODO ensure no duplicate paths are searched unnecissarily
+    const files = getAllAbletonProjectFiles(directories[0]);
+    console.log('All Ableton files found in ' , directories[0]);
+    files.forEach((item,index) => {
+        console.log({ index, item });
+    });
+   
+
 });
 
+
+const getAllAbletonProjectFiles = function(dirPath, arrayOfFiles) {
+  files = fs.readdirSync(dirPath);
+
+  arrayOfFiles = arrayOfFiles || [];
+
+  files.forEach(function(file) {
+    if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+      arrayOfFiles = getAllAbletonProjectFiles(dirPath + "/" + file, arrayOfFiles);
+    } else {
+      if(path.extname(file) == '.als')
+        arrayOfFiles.push(path.join(__dirname, dirPath, "/", file));
+    }
+  });
+
+  return arrayOfFiles;
+}
+
+// function getExtension(filename) {
+//     return filename.split('.').pop();
+// }
 
 // Create menu template
 const mainMenuTemplate = [
