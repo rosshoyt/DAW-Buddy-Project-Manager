@@ -14,7 +14,7 @@
   </nav>
 
   <body>
-    <a class="waves-effect waves-light btn-small" onclick="clickButton()">
+    <a class="waves-effect waves-light btn-large" onclick="clickButton()">
       <!--i class="material-icons left">home</i-->Add Search Folder</a>
     <script>
       const ipcRenderer = require('electron');
@@ -35,10 +35,25 @@
           li.appendChild(itemText);
           ul.appendChild(li);
 
-          // update list's label message:
+          // update UI based on number of list elements:
           var x = document.getElementById("folderslist").childElementCount;
-          document.getElementById("folderslistlabel").innerHTML = x == 0 ? 'Add a search folder to get started' : 'Folder(s) to Search:';
-
+          var listLabelText = '';
+          //var toggleStartButtonDisabled = false; // TODO refactor startButton toggle code
+          var startButton = document.querySelector("#startscanbtn");
+          if(x == 0){
+            listLabelText = 'Add a search folder to get started';
+            if (!startButton.classList.contains('disabled')) {
+              startButton.classList.add('disabled');
+            }
+          } else{
+            listLabelText = 'Folder(s) to Search:';
+            if (startButton.classList.contains('disabled')) {
+              startButton.classList.remove('disabled');
+            } 
+            
+          }
+          document.getElementById("folderslistlabel").innerHTML = listLabelText;
+          
 
         }).catch(err => {
           console.log(err);
@@ -46,6 +61,7 @@
 
       }
     </script>
+    <a class="waves-effect waves-light btn-large right disabled" id="startscanbtn">Start Scan</a>
     <div>
       <label id="folderslistlabel">Add a search folder to get started</label>
       <ul id="folderslist"></ul>
