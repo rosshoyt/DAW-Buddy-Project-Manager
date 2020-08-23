@@ -85,10 +85,10 @@ ipcMain.on('item:add', function(e, item){
 
 // Catch startscan
 ipcMain.on('startscan', function(e, directories){
-    console.log('[Main Thread] Caught startscan! Directories to scan:');
-    directories.forEach((item, index) => {
-        console.log({ index, item });
-    });
+    console.log('[Main Thread] Scanning directories:');
+    // directories.forEach((item, index) => {
+    //     console.log({ index, item });
+    // });
 
     // Scan directories, extract relevant data and return results to renderer thread
     // TODO ensure no duplicate paths are searched unnecissarily
@@ -108,16 +108,31 @@ const getAllAbletonProjectDirectories = function(dirPath, arrayOfProjects) {
   arrayOfProjects = arrayOfProjects || [];
 
   files.forEach(function(file) {
-    if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+    var fileInfo = fs.statSync(dirPath + "/" + file);
+    if (fileInfo.isDirectory()) {
       arrayOfProjects = getAllAbletonProjectDirectories(dirPath + "/" + file, arrayOfProjects);
     } else {
       if(path.extname(file) == '.als'){
-        if(arrayOfProjects.includes(dirPath)){
-          // project has been added
+        //if(arrayOfProjects.some(e => e.fullPath === dirPath)){
+        //var projIndex = arrayOfProjects.indexOf();
+        var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
+        if(i >= 0){
+          var numProjFiles = arrayOfProjects[i].numProjFiles++;
+          console.log('For project ', arrayOfProjects[i].projectName,'Incremented numProjectFiles to ', numProjFiles);
+        //if (typeof arr.find(n => n === freeNumber) !== 'undefined') {
+        //     ++freeNumber;
+        // } else {
+        //     isTaken = false;
+        // }
+          // project has been added, increment numProjFiles of existing entry
+
+
+
         } else{
-          // add project to list
-          //arrayOfProjects.push(path.join(__dirname, dirPath, "/", file));
-          arrayOfProjects.push(dirPath);
+          // Create and add Ableton project to list
+          var abletonProject = { fullPath: dirPath, projectName:file,  dateCreated:fileInfo.birthtime, numProjFiles:1};
+          //arrayOfProjects.push(path.join(__dirname, , "/", file));
+          arrayOfProjects.push(abletonProject);
         }
 
 
@@ -128,6 +143,12 @@ const getAllAbletonProjectDirectories = function(dirPath, arrayOfProjects) {
   return arrayOfProjects;
 }
 
+Array.prototype.indexOfObject = function (property, value) {
+    for (var i = 0, len = this.length; i < len; i++) {
+        if (this[i][property] === value) return i;
+    }
+    return -1;
+}
 // function getExtension(filename) {
 //     return filename.split('.').pop();
 // }
