@@ -114,31 +114,51 @@
           }
         }
       </script>
-      <label id="projectslistlabel"></label>
-      <ul id="projectslist"></ul>
-      <script>
-
-        ipcRenderer.on('scan:complete', function(e, projects) {
-          // get second ul TODO refactor to use ID
-          const ul2 = document.querySelectorAll('ul')[1];
-          ul2.className = 'collection';
-
-          projects.forEach(function(project){
-            const li = document.createElement('li');
-            li.className = 'collection-item';
-            const itemText = document.createTextNode(project.projectName);
-            li.appendChild(itemText);
-            ul2.appendChild(li);
-          });
-
-          const label = document.getElementById('projectslistlabel');
-          label.className = 'label';
-          label.innerText = 'DAW Projects Found:'
-          // const itemText = document.createTextNode(projects.projectName);
-          // li.appendChild(itemText);
-          // ul2.appendChild(li);
-      });
-      </script>
     </div>
+    <!--label id="projectslistlabel"></label-->
+    <table id="projectsTable" class="striped">
+      <thead>
+        <tr>
+            <th>Project Name</th>
+            <th>Date Created</th>
+            <th>Number of Project Files</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <script>
+
+      ipcRenderer.on('scan:complete', function(e, projects) {
+        
+        const table = document.getElementById('projectsTable');
+       
+        projects.forEach(function(project){
+          // SEE https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableElement/insertRow
+
+          var tableRef = document.getElementById('projectsTable').getElementsByTagName('tbody')[0];
+          
+          // Insert a row at the end of the table
+          var newRow   = tableRef.insertRow(-1);
+
+          // Append a text node to the cell
+          var projectName = document.createTextNode(project.projectName);
+          var dateCreated = document.createTextNode(project.dateCreated);
+          var numProjFiles = document.createTextNode(project.numProjFiles);
+          
+          // Insert a cell in the row at index 0
+          var cell1  = newRow.insertCell(0);
+          var cell2  = newRow.insertCell(1);
+          var cell3  = newRow.insertCell(2);
+
+          cell1.appendChild(projectName);
+          cell2.appendChild(dateCreated);
+          cell3.appendChild(numProjFiles);
+        });
+
+        // const label = document.getElementById('projectslistlabel');
+        // label.className = 'label';
+        // label.innerText = 'DAW Projects Found:';
+    });
+    </script>
   </body>
 </html>
