@@ -12,9 +12,9 @@
   "author": "Ross Hoyt",
   "license": "MIT",
   "dependencies": {
-    "electron": "^9.2.0"
+    "electron": "^9.2.1"
   },
   "devDependencies": {
-    "electron-packager": "^15.0.0"
+    "electron-packager": "^15.1.0"
   }
 }

@@ -50,11 +50,11 @@
             listLabelText = 'Folder(s) to Search:';
             if (startButton.classList.contains('disabled')) {
               startButton.classList.remove('disabled');
-            } 
-            
+            }
+
           }
           document.getElementById("folderslistlabel").innerHTML = listLabelText;
-          
+
 
         }).catch(err => {
           console.log(err);
@@ -69,7 +69,7 @@
 
       function clickStart() {
         console.log("Clicked start!");
-        
+
         let folders = document.getElementById("folderslist").querySelectorAll('li');
 
         // folders.forEach((item, index) => {
@@ -78,14 +78,14 @@
 
         //console.log(folders);
         if(folders.length > 0){
-          console.log("More than 0 folders selected, sending to main thread");
+          //console.log("More than 0 folders selected, sending to main thread");
           var folderPaths = [];
           // convert each collection item into a string path
           folders.forEach((item, index) => {
             folderPaths.push(item.innerText);
           });
-          
-          // send to main thread
+
+          // send directory paths to main thread
           ipcRenderer.send('startscan', folderPaths);
         }
       }
@@ -97,16 +97,6 @@
         //const electron = require('electron');
         //const { ipcRenderer } = electron;
         const ul = document.querySelector('ul');
-
-        // Add item
-        ipcRenderer.on('item:add', function (e, dir) {
-          ul.className = 'collection';
-          const li = document.createElement('li');
-          li.className = 'collection-item';
-          const itemText = document.createTextNode(dir);
-          li.appendChild(itemText);
-          ul.appendChild(li);
-        });
 
         // Clear items
         ipcRenderer.on('item:clear', function () {
@@ -123,6 +113,31 @@
             ul.className = '';
           }
         }
+      </script>
+      <label id="projectslistlabel"></label>
+      <ul id="projectslist"></ul>
+      <script>
+
+        ipcRenderer.on('scan:complete', function(e, projects) {
+          // get second ul TODO refactor to use ID
+          const ul2 = document.querySelectorAll('ul')[1];
+          ul2.className = 'collection';
+
+          projects.forEach(function(project){
+            const li = document.createElement('li');
+            li.className = 'collection-item';
+            const itemText = document.createTextNode(project.projectName);
+            li.appendChild(itemText);
+            ul2.appendChild(li);
+          });
+
+          const label = document.getElementById('projectslistlabel');
+          label.className = 'label';
+          label.innerText = 'DAW Projects Found:'
+          // const itemText = document.createTextNode(projects.projectName);
+          // li.appendChild(itemText);
+          // ul2.appendChild(li);
+      });
       </script>
     </div>
   </body>

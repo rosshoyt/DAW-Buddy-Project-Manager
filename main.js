@@ -45,14 +45,13 @@ function createAddWindow() {
         height: 200,
         title: 'Add Shopping List Item',
 
-
         // TODO Implement secure solution https://stackoverflow.com/a/57049268
         // Solves Uncaught ReferenceError: 'require' is not defined
         webPreferences: {
             nodeIntegration: true
         }
-
     });
+
     // load html into window
     addWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'addWindow.html'),
@@ -64,18 +63,7 @@ function createAddWindow() {
     addWindow.on('close', function () {
         addWindow = null;
     });
-
-
 }
-
-// Catch item:add
-ipcMain.on('item:add', function(e, item){
-    //console.log(item);
-    mainWindow.webContents.send('item:add', item);
-    addWindow.close();
-
-});
-
 
 // TODO Could catch dir:add here to process on main thread
 // ipcMain.on('dir:add', function(e, dir){
@@ -83,75 +71,86 @@ ipcMain.on('item:add', function(e, item){
 //     mainWindow.webContents.send('dir:add', dir);
 // })
 
-// Catch startscan
+// Catch item:add TODO remove
+ipcMain.on('item:add', function(e, item){
+    //console.log(item);
+    mainWindow.webContents.send('item:add', item);
+    addWindow.close();
+});
+
+// Perform the directory scan on array of directory paths to be searched
+// TODO Scan more than just the first (index=0) directory passed in
 ipcMain.on('startscan', function(e, directories){
     console.log('[Main Thread] Scanning directories:');
-    // directories.forEach((item, index) => {
-    //     console.log({ index, item });
-    // });
 
     // Scan directories, extract relevant data and return results to renderer thread
     // TODO ensure no duplicate paths are searched unnecissarily
     const files = getAllAbletonProjectDirectories(directories[0]);
-    console.log('All Ableton directories found in ' , directories[0]);
-    files.forEach((item,index) => {
-        console.log({ index, item });
-    });
 
+    //console.log('All Ableton directories found in ' , directories[0]);
+    // files.forEach((item,index) => {
+    //     console.log({ index, item });
+    // });
 
+    // Send projects to renderer thread for display
+    mainWindow.webContents.send('scan:complete',files);
 });
 
-
-const getAllAbletonProjectDirectories = function(dirPath, arrayOfProjects) {
+// Method that recursively searches a provided directory path for Ableton Live projects
+const getAllAbletonProjectDirectories = function(dirPath, arrayOfProjects, dirBirthtime) {
   files = fs.readdirSync(dirPath);
-
   arrayOfProjects = arrayOfProjects || [];
-
+  //var dirBirthtime;
   files.forEach(function(file) {
-    var fileInfo = fs.statSync(dirPath + "/" + file);
-    if (fileInfo.isDirectory()) {
-      arrayOfProjects = getAllAbletonProjectDirectories(dirPath + "/" + file, arrayOfProjects);
+    // get filesystem info on current file
+    var fsInfo = fs.statSync(dirPath + "/" + file);
+    if (fsInfo.isDirectory()) {
+      //dirBirthtime = fsInfo.birthtime;
+      arrayOfProjects = getAllAbletonProjectDirectories(dirPath + "/" + file, arrayOfProjects, fsInfo.birthtime);
     } else {
       if(path.extname(file) == '.als'){
-        //if(arrayOfProjects.some(e => e.fullPath === dirPath)){
-        //var projIndex = arrayOfProjects.indexOf();
         var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
         if(i >= 0){
-          var numProjFiles = arrayOfProjects[i].numProjFiles++;
-          console.log('For project ', arrayOfProjects[i].projectName,'Incremented numProjectFiles to ', numProjFiles);
-        //if (typeof arr.find(n => n === freeNumber) !== 'undefined') {
-        //     ++freeNumber;
-        // } else {
-        //     isTaken = false;
-        // }
           // project has been added, increment numProjFiles of existing entry
-
-
-
+          var numProjFiles = arrayOfProjects[i].numProjFiles++;
+          // TODO add Ableton File details to Project entry
         } else{
-          // Create and add Ableton project to list
-          var abletonProject = { fullPath: dirPath, projectName:file,  dateCreated:fileInfo.birthtime, numProjFiles:1};
-          //arrayOfProjects.push(path.join(__dirname, , "/", file));
+          // Project hasn't been added, create and add Ableton project to list
+          var abletonProject = {
+            fullPath: dirPath,
+            projectName: file,
+            dateCreated: fsInfo.birthtime,
+            numProjFiles: 1,
+            projectFiles: [{}]
+          };
           arrayOfProjects.push(abletonProject);
+
+          // Example object with nested array of objects:
+          // const data = {
+          //   code: 42,
+          //   items: [{
+          //       id: 1,
+          //       name: 'foo'
+          //     }, {
+          //       id: 2,
+          //       name: 'bar'
+          //     }]
+          // };
+
         }
-
-
       }
     }
   });
-
   return arrayOfProjects;
 }
 
+// helper function which returns index of item in JS array, or -1 if not found
 Array.prototype.indexOfObject = function (property, value) {
     for (var i = 0, len = this.length; i < len; i++) {
         if (this[i][property] === value) return i;
     }
     return -1;
 }
-// function getExtension(filename) {
-//     return filename.split('.').pop();
-// }
 
 // Create menu template
 const mainMenuTemplate = [
