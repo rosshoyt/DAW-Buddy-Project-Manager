@@ -1,6 +1,5 @@
-# electron-js-shoppinglist
-## A quick electron app which uses vanilla JS along with HTML/CSS for Frontend GUI
-### Source: https://youtu.be/kN1Czs0m1SU
+# DAW-Buddy - The Music Project Manager
+## Cross-Platform Electron/NodeJS Desktop Application using JS & HTML/CSS
 ### 
 ### 'npm install' to install dependencies
 ### 'npm start' to run application
