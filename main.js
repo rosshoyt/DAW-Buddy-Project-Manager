@@ -31,6 +31,9 @@ app.on('ready', function () {
     mainWindow.on('closed', function () {
         app.quit();
     });
+    // Set window size
+    mainWindow.setSize(1024,768);
+
     // Build menu from template
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     // Insert menu
@@ -72,7 +75,7 @@ function createAddWindow() {
 // })
 
 // Catch item:add TODO remove
-ipcMain.on('item:add', function(e, item){
+ipcMain.on('item:add', function (e, item) {
     //console.log(item);
     mainWindow.webContents.send('item:add', item);
     addWindow.close();
@@ -80,68 +83,108 @@ ipcMain.on('item:add', function(e, item){
 
 // Perform the directory scan on array of directory paths to be searched
 // TODO Scan more than just the first (index=0) directory passed in
-ipcMain.on('startscan', function(e, directories){
+ipcMain.on('startscan', function (e, directories) {
     console.log('[Main Thread] Scanning directories:');
 
     // Scan directories, extract relevant data and return results to renderer thread
     // TODO ensure no duplicate paths are searched unnecissarily
-    const files = getAllAbletonProjectDirectories(directories[0]);
 
-    //console.log('All Ableton directories found in ' , directories[0]);
-    // files.forEach((item,index) => {
-    //     console.log({ index, item });
-    // });
+    // First find all directories which contain a music project
+    //const projects = [];
+    //for (var i = 0; i < projects.length; i++) {
+    //    console.log('Getting music projects in dir: ', directories[i]);
+    //    projects = getAllDAWProjects(directories[i], projects);
+
+    //}
+    const projects = getAllDAWProjects(directories[0]);
+
+    console.log('All Ableton directories found in ', directories[0]);
+    projects.forEach((item,index) => {
+        console.log({ index, item });
+    });
 
     // Send projects to renderer thread for display
-    mainWindow.webContents.send('scan:complete',files);
+    mainWindow.webContents.send('scan:complete', projects);
 });
 
-// Method that recursively searches a provided directory path for Ableton Live projects
-const getAllAbletonProjectDirectories = function(dirPath, arrayOfProjects, dirBirthtime) {
-  files = fs.readdirSync(dirPath);
-  arrayOfProjects = arrayOfProjects || [];
-  //var dirBirthtime;
-  files.forEach(function(file) {
-    // get filesystem info on current file
-    var fsInfo = fs.statSync(dirPath + "/" + file);
-    if (fsInfo.isDirectory()) {
-      //dirBirthtime = fsInfo.birthtime;
-      arrayOfProjects = getAllAbletonProjectDirectories(dirPath + "/" + file, arrayOfProjects, fsInfo.birthtime);
-    } else {
-      if(path.extname(file) == '.als'){
-        var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
-        if(i >= 0){
-          // project has been added, increment numProjFiles of existing entry
-          var numProjFiles = arrayOfProjects[i].numProjFiles++;
-          // TODO add Ableton File details to Project entry
-        } else{
-          // Project hasn't been added, create and add Ableton project to list
-          var abletonProject = {
-            fullPath: dirPath,
-            projectName: file,
-            dateCreated: fsInfo.birthtime,
-            numProjFiles: 1,
-            projectFiles: [{}]
-          };
-          arrayOfProjects.push(abletonProject);
+const getProjectFileInfo = function (fullPath) {
 
-          // Example object with nested array of objects:
-          // const data = {
-          //   code: 42,
-          //   items: [{
-          //       id: 1,
-          //       name: 'foo'
-          //     }, {
-          //       id: 2,
-          //       name: 'bar'
-          //     }]
-          // };
+}
+// Method that recursively searches a provided directory path for DAW projects
+// TODO test if works when base directory is itself a music project (should work)
+const getAllDAWProjects = function (dirPath, arrayOfProjects) {
+    arrayOfProjects = arrayOfProjects || [];
+    files = fs.readdirSync(dirPath);
 
+    files.forEach(function (file) {
+        // get filesystem info on current file
+        filePath = dirPath + "/" + file;
+        var fsInfo = fs.statSync(filePath);
+
+        if (fsInfo.isDirectory()) {
+            //dirBirthtime = fsInfo.birthtime;
+            arrayOfProjects = getAllDAWProjects(filePath, arrayOfProjects);
+        } else {
+            var dawType;
+            console.log('Testing file extension');
+            switch (path.extname(file)) {
+                case '.als':
+                    dawType = 'Ableton';
+                    break;
+                case '.ptx':
+                    dawType = 'ProTools';
+                    break;
+                case '.cpr':
+                    dawType = 'Cubase';
+                    break;
+                default:
+                    dawType = 'none';
+            }
+            if (dawType !== 'none') {
+                var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
+                if (i >= 0) {
+                    // project has been added, increment numProjFiles of existing entry
+                    arrayOfProjects[i].numProjFiles++;
+                    // TODO add Ableton File details to Project entry
+                } else {
+                    // Project hasn't been added, create and add project to list!
+
+                    // Get the project name from the containing dir's path 
+                    // TODO could offer more options for determining name of project (name of earliest proj file in directory could be option )
+                    // TODO validate string input 
+                    var projectName = dirPath.substring(dirPath.lastIndexOf("/")+1, dirPath.length);
+                    
+                    // get project directory's birthtime
+                    var projectDirBirthtime = fsInfo .birthtime;
+                    console.log('Adding project at ', dirPath, ' with project name \"', projectName, '\" with birthtime ', projectDirBirthtime);
+                    var dawProject = {
+                        fullPath: dirPath, // Primary Key UID for DAW Project
+                        daw: dawType,
+                        projectName: projectName, 
+                        dateCreated: projectDirBirthtime,
+                        numProjFiles: 1,
+                        projectFiles: [{}],
+                        mediaFiles: [{}]
+                    };
+                    arrayOfProjects.push(dawProject);
+
+                    // Example object with nested array of objects:
+                    // const data = {
+                    //   code: 42,
+                    //   items: [{
+                    //       id: 1,
+                    //       name: 'foo'
+                    //     }, {
+                    //       id: 2,
+                    //       name: 'bar'
+                    //     }]
+                    // };
+
+                }
+            }
         }
-      }
-    }
-  });
-  return arrayOfProjects;
+    });
+    return arrayOfProjects;
 }
 
 // helper function which returns index of item in JS array, or -1 if not found
@@ -155,19 +198,19 @@ Array.prototype.indexOfObject = function (property, value) {
 // Create menu template
 const mainMenuTemplate = [
     {
-        label: process.platform == 'darwin' ? '' :app.getName(),
+        label: process.platform == 'darwin' ? '' : app.getName(),
         submenu: [
-          { role: 'about' },
-          { type: 'separator' },
-          { role: 'services' },
-          { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideothers' },
-          { role: 'unhide' },
-          { type: 'separator' },
-          { role: 'quit' }
+            { role: 'about' },
+            { type: 'separator' },
+            { role: 'services' },
+            { type: 'separator' },
+            { role: 'hide' },
+            { role: 'hideothers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' }
         ]
-      },
+    },
     {
         label: 'File',
         submenu: [
@@ -179,7 +222,7 @@ const mainMenuTemplate = [
             },
             {
                 label: 'Clear Items',
-                click(){
+                click() {
                     mainWindow.webContents.send('item:clear');
                 }
             },

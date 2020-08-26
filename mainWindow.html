@@ -17,7 +17,7 @@
     <a class="waves-effect waves-light btn-large" onclick="clickButton()">
       <!--i class="material-icons left">home</i-->Add Search Folder</a>
     <script>
-      const {ipcRenderer} = require('electron');
+      const { ipcRenderer } = require('electron');
 
       function clickButton() {
         const { dialog } = require('electron').remote;
@@ -41,12 +41,12 @@
           var listLabelText = '';
           //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
           var startButton = document.querySelector("#startscanbtn");
-          if(x == 0){
+          if (x == 0) {
             listLabelText = 'Add a search folder to get started';
             if (!startButton.classList.contains('disabled')) {
               startButton.classList.add('disabled');
             }
-          } else{
+          } else {
             listLabelText = 'Folder(s) to Search:';
             if (startButton.classList.contains('disabled')) {
               startButton.classList.remove('disabled');
@@ -64,20 +64,13 @@
     </script>
     <a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a>
     <script>
-      //const electron = require('electron');
-      //const { ipcRenderer } = electron;
-
       function clickStart() {
         console.log("Clicked start!");
 
         let folders = document.getElementById("folderslist").querySelectorAll('li');
 
-        // folders.forEach((item, index) => {
-        //   console.log({ index, item })
-        // });
-
         //console.log(folders);
-        if(folders.length > 0){
+        if (folders.length > 0) {
           //console.log("More than 0 folders selected, sending to main thread");
           var folderPaths = [];
           // convert each collection item into a string path
@@ -116,49 +109,56 @@
       </script>
     </div>
     <!--label id="projectslistlabel"></label-->
-    <table id="projectsTable" class="striped">
+    <table id="projectsTable" class="striped responsive-table">
       <thead>
         <tr>
-            <th>Project Name</th>
-            <th>Date Created</th>
-            <th>Number of Project Files</th>
+          <th>Project Name</th>
+          <th>Date Created</th>
+          <th>Number of Project Files</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
     <script>
-
-      ipcRenderer.on('scan:complete', function(e, projects) {
-        
+      // fill table with music projects
+      ipcRenderer.on('scan:complete', function (e, projects) {
         const table = document.getElementById('projectsTable');
-       
-        projects.forEach(function(project){
+        projects.forEach(function (project) {
           // SEE https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableElement/insertRow
 
           var tableRef = document.getElementById('projectsTable').getElementsByTagName('tbody')[0];
-          
+
           // Insert a row at the end of the table
-          var newRow   = tableRef.insertRow(-1);
+          var newRow = tableRef.insertRow(-1);
+          newRow.addEventListener('dblclick', removeRow);
 
           // Append a text node to the cell
           var projectName = document.createTextNode(project.projectName);
           var dateCreated = document.createTextNode(project.dateCreated);
           var numProjFiles = document.createTextNode(project.numProjFiles);
-          
+
           // Insert a cell in the row at index 0
-          var cell1  = newRow.insertCell(0);
-          var cell2  = newRow.insertCell(1);
-          var cell3  = newRow.insertCell(2);
+          var cell1 = newRow.insertCell(0);
+          var cell2 = newRow.insertCell(1);
+          var cell3 = newRow.insertCell(2);
 
           cell1.appendChild(projectName);
           cell2.appendChild(dateCreated);
           cell3.appendChild(numProjFiles);
-        });
 
-        // const label = document.getElementById('projectslistlabel');
-        // label.className = 'label';
-        // label.innerText = 'DAW Projects Found:';
-    });
+          //cell1.addEventListener('dblclick', removeRow);
+          //cell2.addEventListener('dblclick', removeRow);
+          //cell3.addEventListener('dblclick', removeRow);
+        });
+      });
+
+      function removeRow(r) {
+        //var index = r.rowIndex;
+        //var table = document.getElementById('projectstable');
+        console.log('TODO Implement delete-table-row');
+
+      }
     </script>
   </body>
+
 </html>
