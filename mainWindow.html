@@ -54,8 +54,6 @@
 
           }
           document.getElementById("folderslistlabel").innerHTML = listLabelText;
-
-
         }).catch(err => {
           console.log(err);
         });
@@ -65,19 +63,13 @@
     <a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a>
     <script>
       function clickStart() {
-        console.log("Clicked start!");
-
         let folders = document.getElementById("folderslist").querySelectorAll('li');
-
-        //console.log(folders);
         if (folders.length > 0) {
-          //console.log("More than 0 folders selected, sending to main thread");
           var folderPaths = [];
           // convert each collection item into a string path
           folders.forEach((item, index) => {
             folderPaths.push(item.innerText);
           });
-
           // send directory paths to main thread
           ipcRenderer.send('startscan', folderPaths);
         }
@@ -87,8 +79,6 @@
       <label id="folderslistlabel">Add a search folder to get started</label>
       <ul id="folderslist"></ul>
       <script>
-        //const electron = require('electron');
-        //const { ipcRenderer } = electron;
         const ul = document.querySelector('ul');
 
         // Clear items
@@ -109,7 +99,7 @@
       </script>
     </div>
     <!--label id="projectslistlabel"></label-->
-    <table id="projectsTable" class="striped responsive-table">
+    <table id="projectsTable" class="striped">
       <thead>
         <tr>
           <th>Project Name</th>
@@ -130,7 +120,10 @@
 
           // Insert a row at the end of the table
           var newRow = tableRef.insertRow(-1);
-          newRow.addEventListener('dblclick', removeRow);
+          newRow.id = project.fullPath;
+          //newRow.addEventListener('click', selectRow);
+          newRow.addEventListener('dblclick', openRowDetailWindow);
+          
 
           // Append a text node to the cell
           var projectName = document.createTextNode(project.projectName);
@@ -141,22 +134,24 @@
           var cell1 = newRow.insertCell(0);
           var cell2 = newRow.insertCell(1);
           var cell3 = newRow.insertCell(2);
-
+ 
           cell1.appendChild(projectName);
           cell2.appendChild(dateCreated);
           cell3.appendChild(numProjFiles);
-
-          //cell1.addEventListener('dblclick', removeRow);
-          //cell2.addEventListener('dblclick', removeRow);
-          //cell3.addEventListener('dblclick', removeRow);
         });
       });
 
-      function removeRow(r) {
-        //var index = r.rowIndex;
-        //var table = document.getElementById('projectstable');
-        console.log('TODO Implement delete-table-row');
+      // document.addEventListener("DOMContentLoaded", () => {
+      //   const rows = document.querySelectorAll("tr[data-")
+      // });
 
+      
+
+
+      function openRowDetailWindow(r) {
+        var id = r.target.parentNode.id;
+        console.log('Opening Row-Detail Window for project path ', id);//r.target.id);
+        ipcRenderer.send('getprojectdetail', id);
       }
     </script>
   </body>

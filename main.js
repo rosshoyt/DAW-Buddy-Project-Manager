@@ -10,6 +10,7 @@ const { app, BrowserWindow, Menu, ipcMain } = electron;
 
 let mainWindow;
 let addWindow;
+const detailWindows = new Set();
 
 // Listen for app to be ready
 app.on('ready', function () {
@@ -40,64 +41,30 @@ app.on('ready', function () {
     Menu.setApplicationMenu(mainMenu);
 });
 
-// Handle create add window
-function createAddWindow() {
-    // create new window
-    addWindow = new BrowserWindow({
-        width: 300,
-        height: 200,
-        title: 'Add Shopping List Item',
-
-        // TODO Implement secure solution https://stackoverflow.com/a/57049268
-        // Solves Uncaught ReferenceError: 'require' is not defined
-        webPreferences: {
-            nodeIntegration: true
-        }
-    });
-
-    // load html into window
-    addWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'addWindow.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
-
-    // Handle garbage collection
-    addWindow.on('close', function () {
-        addWindow = null;
-    });
-}
-
 // TODO Could catch dir:add here to process on main thread
 // ipcMain.on('dir:add', function(e, dir){
 //     console.log("Inside dir:add", dir);
 //     mainWindow.webContents.send('dir:add', dir);
 // })
 
-// Catch item:add TODO remove
-ipcMain.on('item:add', function (e, item) {
-    //console.log(item);
-    mainWindow.webContents.send('item:add', item);
-    addWindow.close();
-});
 
 // Perform the directory scan on array of directory paths to be searched
 // TODO Scan more than just the first (index=0) directory passed in
 ipcMain.on('startscan', function (e, directories) {
     console.log('[Main Thread] Scanning directories:');
 
+    // TODO Implement New Approach (Recursive + sencond, iterative)
+    // const projectDirectories = getPossibleDAWProjectDirectories(directories[0]);
+    // projectDirectories.forEach((item,index) => {
+    //     console.log({ index, item });
+    // });
+
+    // OG Approach(recursive):
     // Scan directories, extract relevant data and return results to renderer thread
     // TODO ensure no duplicate paths are searched unnecissarily
-
     // First find all directories which contain a music project
-    //const projects = [];
-    //for (var i = 0; i < projects.length; i++) {
-    //    console.log('Getting music projects in dir: ', directories[i]);
-    //    projects = getAllDAWProjects(directories[i], projects);
-
-    //}
+    // TODO support more than just first listed directory path
     const projects = getAllDAWProjects(directories[0]);
-
     console.log('All Ableton directories found in ', directories[0]);
     projects.forEach((item,index) => {
         console.log({ index, item });
@@ -107,14 +74,111 @@ ipcMain.on('startscan', function (e, directories) {
     mainWindow.webContents.send('scan:complete', projects);
 });
 
-const getProjectFileInfo = function (fullPath) {
+// Handle create add window
+function createDetailWindow(projectPath) {
+    console.log('creating detail window for project with path ', projectPath);
+    // create new window
+    let newWindow = new BrowserWindow({
+        width: 300,
+        height: 200,
+        title: 'Project Details: ' + projectPath,
 
+        // TODO Implement secure solution https://stackoverflow.com/a/57049268
+        // Solves Uncaught ReferenceError: 'require' is not defined
+        webPreferences: {
+            nodeIntegration: true
+        }
+    });
+
+    // load html into window
+    newWindow.loadURL(url.format({
+        pathname: path.join(__dirname, 'detailWindow.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
+
+    // Handle garbage collection
+    newWindow.on('close', function () {
+        detailWindows.delete(newWindow);
+        newWindow = null;
+    });
+
+    detailWindows.add(newWindow);
+    // return newWindow;
 }
+
+// Catch item:add TODO remove
+ipcMain.on('item:add', function (e, item) {
+    //console.log(item);
+    mainWindow.webContents.send('item:add', item);
+    newWindow.close();
+});
+
+
+ipcMain.on('getprojectdetail', function(e, rowID){
+    createDetailWindow(rowID);
+});
+
+// helper function which returns index of item in JS array, or -1 if not found
+Array.prototype.indexOfObject = function (property, value) {
+    for (var i = 0, len = this.length; i < len; i++) {
+        if (this[i][property] === value) return i;
+    }
+    return -1;
+}
+
+// Method that recursively searches a provided directory path for DAW projects
+// TODO test if works when base directory is itself a music project (should work)
+const getPossibleDAWProjectDirectories = function (dirPath, possibleProjectDirectories) {
+    possibleProjectDirectories = possibleProjectDirectories || [];
+    var files = fs.readdirSync(dirPath);
+
+    files.forEach(function (file) {
+        // get filesystem info on current file
+        filePath = dirPath + "/" + file;
+        var fsInfo = fs.statSync(filePath);
+
+        if (fsInfo.isDirectory()) {
+            //dirBirthtime = fsInfo.birthtime;
+            possibleProjectDirectories = getPossibleDAWProjectDirectories(filePath, possibleProjectDirectories);
+        } else {
+            var dawType;
+            console.log('Testing file extension');
+            switch (path.extname(file)) {
+                case '.als':
+                    dawType = 'Ableton';
+                    break;
+                case '.ptx':
+                    dawType = 'ProTools';
+                    break;
+                case '.cpr':
+                    dawType = 'Cubase';
+                    break;
+                default:
+                    dawType = 'none';
+            }
+            if (dawType !== 'none') {
+                // check if project has already been discovered by comparing the primary key (full directory path)
+                console.log('fullPath: ', dirPath);
+                // TODO Fix error here
+                if(possibleProjectDirectories.indexOfObject('fullPath', dirPath) == -1){
+                    // we haven't added this possible project directory to list
+                    var possibleProjectDir = {
+                        fullPath: dirPath,
+                        daw: dawType
+                    };
+                    possibleProjectDirectories.push(possibleProjectDir);
+                }
+            }
+        }
+    });
+}
+
 // Method that recursively searches a provided directory path for DAW projects
 // TODO test if works when base directory is itself a music project (should work)
 const getAllDAWProjects = function (dirPath, arrayOfProjects) {
     arrayOfProjects = arrayOfProjects || [];
-    files = fs.readdirSync(dirPath);
+    var files = fs.readdirSync(dirPath);
 
     files.forEach(function (file) {
         // get filesystem info on current file
@@ -141,6 +205,7 @@ const getAllDAWProjects = function (dirPath, arrayOfProjects) {
                     dawType = 'none';
             }
             if (dawType !== 'none') {
+                // check if project has already been discovered by comparing the primary key (full directory path)
                 var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
                 if (i >= 0) {
                     // project has been added, increment numProjFiles of existing entry
@@ -187,13 +252,10 @@ const getAllDAWProjects = function (dirPath, arrayOfProjects) {
     return arrayOfProjects;
 }
 
-// helper function which returns index of item in JS array, or -1 if not found
-Array.prototype.indexOfObject = function (property, value) {
-    for (var i = 0, len = this.length; i < len; i++) {
-        if (this[i][property] === value) return i;
-    }
-    return -1;
-}
+// const getAbletonProjectFileDetails = function(filePath){
+
+// }
+
 
 // Create menu template
 const mainMenuTemplate = [
@@ -214,12 +276,12 @@ const mainMenuTemplate = [
     {
         label: 'File',
         submenu: [
-            {
-                label: 'Add Item',
-                click() {
-                    createAddWindow();
-                }
-            },
+            // {
+            //     label: 'Add Item',
+            //     click() {
+            //         createDetailWindow();
+            //     }
+            // },
             {
                 label: 'Clear Items',
                 click() {
