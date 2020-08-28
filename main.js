@@ -2,8 +2,11 @@ const electron = require('electron');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
+const Store = require('electron-store');
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
+
+const store = new Store();
 
 // SET ENV
 //process.env.NODE_ENV = 'production';
@@ -67,7 +70,10 @@ ipcMain.on('startscan', function (e, directories) {
     const projects = getAllDAWProjects(directories[0]);
     console.log('All Ableton directories found in ', directories[0]);
     projects.forEach((item,index) => {
-        console.log({ index, item });
+        //console.log({ index, item });
+        
+        store.set(item.fullPath, item);
+        console.log(store.get(item.fullPath));
     });
 
     // Send projects to renderer thread for display
@@ -76,12 +82,14 @@ ipcMain.on('startscan', function (e, directories) {
 
 // Handle create add window
 function createDetailWindow(projectPath) {
-    console.log('creating detail window for project with path ', projectPath);
+    const projDetails = store.get(projectPath);
+    console.log('creating detail window for project ', projDetails);
+
     // create new window
     let newWindow = new BrowserWindow({
-        width: 300,
-        height: 200,
-        title: 'Project Details: ' + projectPath,
+        width: 600,
+        height: 400,
+        title: projDetails.projectName + ' Project Details',
 
         // TODO Implement secure solution https://stackoverflow.com/a/57049268
         // Solves Uncaught ReferenceError: 'require' is not defined
@@ -89,6 +97,8 @@ function createDetailWindow(projectPath) {
             nodeIntegration: true
         }
     });
+    // send project details object to detail window
+    newWindow.projectDetails = projDetails;
 
     // load html into window
     newWindow.loadURL(url.format({
@@ -102,9 +112,9 @@ function createDetailWindow(projectPath) {
         detailWindows.delete(newWindow);
         newWindow = null;
     });
-
+    
     detailWindows.add(newWindow);
-    // return newWindow;
+    
 }
 
 // Catch item:add TODO remove
@@ -115,8 +125,10 @@ ipcMain.on('item:add', function (e, item) {
 });
 
 
-ipcMain.on('getprojectdetail', function(e, rowID){
-    createDetailWindow(rowID);
+ipcMain.on('getprojectdetail', function(e, projectPath){
+
+    createDetailWindow(projectPath);
+    
 });
 
 // helper function which returns index of item in JS array, or -1 if not found
@@ -209,8 +221,15 @@ const getAllDAWProjects = function (dirPath, arrayOfProjects) {
                 var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
                 if (i >= 0) {
                     // project has been added, increment numProjFiles of existing entry
-                    arrayOfProjects[i].numProjFiles++;
-                    // TODO add Ableton File details to Project entry
+                    var project = arrayOfProjects[i];
+                    project.numProjFiles++;
+                    // TODO: create function so that projectFIle objects are created in one place
+                    var projectFile = {
+                        fileName: file,
+                        dateCreated: fsInfo.birthtime
+                    }
+                    project.projectFiles.push(projectFile);
+                    
                 } else {
                     // Project hasn't been added, create and add project to list!
 
@@ -219,17 +238,25 @@ const getAllDAWProjects = function (dirPath, arrayOfProjects) {
                     // TODO validate string input 
                     var projectName = dirPath.substring(dirPath.lastIndexOf("/")+1, dirPath.length);
                     
-                    // get project directory's birthtime
-                    var projectDirBirthtime = fsInfo .birthtime;
+                    // get project directory's birthtime TODO fix, currently gets file's birthtime
+                    var projectDirBirthtime = fsInfo.birthtime;
                     console.log('Adding project at ', dirPath, ' with project name \"', projectName, '\" with birthtime ', projectDirBirthtime);
+
+                    var projectFile = {
+                        fileName: file,
+                        dateCreated: fsInfo.birthtime
+                    }
+
                     var dawProject = {
                         fullPath: dirPath, // Primary Key UID for DAW Project
                         daw: dawType,
                         projectName: projectName, 
                         dateCreated: projectDirBirthtime,
                         numProjFiles: 1,
-                        projectFiles: [{}],
-                        mediaFiles: [{}]
+                        projectFiles: [
+                            projectFile
+                        ]
+                        //,mediaFiles: [{}]
                     };
                     arrayOfProjects.push(dawProject);
 

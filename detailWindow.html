@@ -2,34 +2,52 @@
 <html lang="en">
 
 <head>
-    <!--title>Project Detail Window</title-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <!--title>Project Detail Window</title-->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <!--link rel="stylesheet" href="detailWindow.css"-->
+  <!--script type="text/javascript" src="CollapsibleLists.js"></script-->
 </head>
+<!-- TODO: Could add 'Extended Navbar with Tabs for full-featured individual-project viewer, a-la https://materializecss.com/navbar.html #Extended Navbar with Tabs-->
 
 <body>
-    <div class="container">
-        <form>
-            <div>
-                <label>Enter Item</label>
-                <input type="text" id="item" autofocus>
-            </div>
-            <button class="btn waves-effect waves-light" type="submit">add Item</button>
-        </form>
-    </div>
-
+  <div id="container">
+    <h4 class="header" id="mainheader"></h4>
     <script>
-        const electron = require('electron');
-        const { ipcRenderer } = electron;
-
-        const form = document.querySelector('form');
-        form.addEventListener('submit', submitForm);
-
-        function submitForm(e) {
-            e.preventDefault();
-            const item = document.querySelector('#item').value;
-            ipcRenderer.send('item:add', item);
-        }
+      // Set header text with project name  
+      const electron = require('electron');
+      var currentWindow = electron.remote.getCurrentWindow();
+      mainheader.innerText = currentWindow.projectDetails.projectName;
     </script>
+    <ul class="collapsible">
+      <li>
+        <div class="collapsible-header"><i class="material-icons">filter_drama</i>First</div>
+        <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+      </li>
+      <li>
+        <div class="collapsible-header"><i class="material-icons">place</i>Second</div>
+        <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+      </li>
+      <li>
+        <div class="collapsible-header"><i class="material-icons">whatshot</i>Third</div>
+        <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+      </li>
+    </ul>
+  </div>
+  <script>
+    var currentWindow = electron.remote.getCurrentWindow();
+    var projectDetails = currentWindow.projectDetails;
+    console.log(projectDetails);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('In the Event Listener!');
+      var elems = document.querySelectorAll('.collapsible');
+      var instances = M.Collapsible.init(elems, { accordion: false });
+    });
+
+  </script>
+
 </body>
 
 </html>
