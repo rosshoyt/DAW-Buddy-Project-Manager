@@ -1,53 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <!--title>Project Detail Window</title-->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <!--link rel="stylesheet" href="detailWindow.css"-->
-  <!--script type="text/javascript" src="CollapsibleLists.js"></script-->
 </head>
-<!-- TODO: Could add 'Extended Navbar with Tabs for full-featured individual-project viewer, a-la https://materializecss.com/navbar.html #Extended Navbar with Tabs-->
-
 <body>
   <div id="container">
-    <h4 class="header" id="mainheader"></h4>
+    <nav class="nav-extended">
+      <div class="nav-wrapper">
+        <a id="projectname" class="brand-logo left"></a>
+        <!--a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a-->
+        <ul id="nav-mobile" class="right">
+          <li><a href="#" onclick="openFolder();event.preventDefault();"><i class="material-icons right">folder_open</i>Open Folder</a></li>
+          <script>
+            function openFolder(){
+              console.log("TODO implement open folder in system explorer!");
+            }
+          </script>
+        </ul>
+      </div>
+      <div class="nav-content">
+        <ul class="tabs tabs-transparent">
+          <li class="tab"><a class="active" href="#tab1">Project Info</a></li>
+          <li class="tab"><a href="#tab2">Media Files</a></li>
+          <li class="tab"><a href="#tab3">Data Insights</a></li>
+        </ul>
+      </div>
+    </nav>
     <script>
       // Set header text with project name  
       const electron = require('electron');
       var currentWindow = electron.remote.getCurrentWindow();
-      mainheader.innerText = currentWindow.projectDetails.projectName;
+      projectname.innerText = currentWindow.projectDetails.projectName;
+      console.log('hello, project name = ', currentWindow.projectDetails.projectName);
+      var el = document.querySelector('.tabs');
+      var instance = M.Tabs.init(el, {});
     </script>
-    <ul class="collapsible">
-      <li>
-        <div class="collapsible-header"><i class="material-icons">filter_drama</i>First</div>
-        <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
-      </li>
-      <li>
-        <div class="collapsible-header"><i class="material-icons">place</i>Second</div>
-        <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
-      </li>
-      <li>
-        <div class="collapsible-header"><i class="material-icons">whatshot</i>Third</div>
-        <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
-      </li>
-    </ul>
   </div>
-  <script>
-    var currentWindow = electron.remote.getCurrentWindow();
-    var projectDetails = currentWindow.projectDetails;
-    console.log(projectDetails);
-
-    document.addEventListener('DOMContentLoaded', function () {
-      console.log('In the Event Listener!');
-      var elems = document.querySelectorAll('.collapsible');
-      var instances = M.Collapsible.init(elems, { accordion: false });
-    });
-
-  </script>
-
 </body>
-
 </html>

@@ -85,10 +85,10 @@ function createDetailWindow(projectPath) {
     const projDetails = store.get(projectPath);
     console.log('creating detail window for project ', projDetails);
 
-    // create new window
+    // create new window with dimensions 3/4 size of main window
     let newWindow = new BrowserWindow({
-        width: 600,
-        height: 400,
+        width: 768,
+        height: 576, 
         title: projDetails.projectName + ' Project Details',
 
         // TODO Implement secure solution https://stackoverflow.com/a/57049268
@@ -126,9 +126,7 @@ ipcMain.on('item:add', function (e, item) {
 
 
 ipcMain.on('getprojectdetail', function(e, projectPath){
-
     createDetailWindow(projectPath);
-    
 });
 
 // helper function which returns index of item in JS array, or -1 if not found
@@ -137,53 +135,6 @@ Array.prototype.indexOfObject = function (property, value) {
         if (this[i][property] === value) return i;
     }
     return -1;
-}
-
-// Method that recursively searches a provided directory path for DAW projects
-// TODO test if works when base directory is itself a music project (should work)
-const getPossibleDAWProjectDirectories = function (dirPath, possibleProjectDirectories) {
-    possibleProjectDirectories = possibleProjectDirectories || [];
-    var files = fs.readdirSync(dirPath);
-
-    files.forEach(function (file) {
-        // get filesystem info on current file
-        filePath = dirPath + "/" + file;
-        var fsInfo = fs.statSync(filePath);
-
-        if (fsInfo.isDirectory()) {
-            //dirBirthtime = fsInfo.birthtime;
-            possibleProjectDirectories = getPossibleDAWProjectDirectories(filePath, possibleProjectDirectories);
-        } else {
-            var dawType;
-            console.log('Testing file extension');
-            switch (path.extname(file)) {
-                case '.als':
-                    dawType = 'Ableton';
-                    break;
-                case '.ptx':
-                    dawType = 'ProTools';
-                    break;
-                case '.cpr':
-                    dawType = 'Cubase';
-                    break;
-                default:
-                    dawType = 'none';
-            }
-            if (dawType !== 'none') {
-                // check if project has already been discovered by comparing the primary key (full directory path)
-                console.log('fullPath: ', dirPath);
-                // TODO Fix error here
-                if(possibleProjectDirectories.indexOfObject('fullPath', dirPath) == -1){
-                    // we haven't added this possible project directory to list
-                    var possibleProjectDir = {
-                        fullPath: dirPath,
-                        daw: dawType
-                    };
-                    possibleProjectDirectories.push(possibleProjectDir);
-                }
-            }
-        }
-    });
 }
 
 // Method that recursively searches a provided directory path for DAW projects
@@ -279,10 +230,52 @@ const getAllDAWProjects = function (dirPath, arrayOfProjects) {
     return arrayOfProjects;
 }
 
-// const getAbletonProjectFileDetails = function(filePath){
+// TODO FIX
+// Method that recursively searches a provided directory path for possible DAW Project Directories
+const getPossibleDAWProjectDirectories = function (dirPath, possibleProjectDirectories) {
+    possibleProjectDirectories = possibleProjectDirectories || [];
+    var files = fs.readdirSync(dirPath);
 
-// }
+    files.forEach(function (file) {
+        // get filesystem info on current file
+        filePath = dirPath + "/" + file;
+        var fsInfo = fs.statSync(filePath);
 
+        if (fsInfo.isDirectory()) {
+            //dirBirthtime = fsInfo.birthtime;
+            possibleProjectDirectories = getPossibleDAWProjectDirectories(filePath, possibleProjectDirectories);
+        } else {
+            var dawType;
+            console.log('Testing file extension');
+            switch (path.extname(file)) {
+                case '.als':
+                    dawType = 'Ableton';
+                    break;
+                case '.ptx':
+                    dawType = 'ProTools';
+                    break;
+                case '.cpr':
+                    dawType = 'Cubase';
+                    break;
+                default:
+                    dawType = 'none';
+            }
+            if (dawType !== 'none') {
+                // check if project has already been discovered by comparing the primary key (full directory path)
+                console.log('fullPath: ', dirPath);
+                // TODO Fix error here
+                if(possibleProjectDirectories.indexOfObject('fullPath', dirPath) == -1){
+                    // we haven't added this possible project directory to list
+                    var possibleProjectDir = {
+                        fullPath: dirPath,
+                        daw: dawType
+                    };
+                    possibleProjectDirectories.push(possibleProjectDir);
+                }
+            }
+        }
+    });
+}
 
 // Create menu template
 const mainMenuTemplate = [
