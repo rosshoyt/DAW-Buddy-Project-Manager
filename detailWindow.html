@@ -14,8 +14,11 @@
         <ul id="nav-mobile" class="right">
           <li><a href="#" onclick="openFolder();event.preventDefault();"><i class="material-icons right">folder_open</i>Open Folder</a></li>
           <script>
+            const { ipcRenderer } = require('electron');
             function openFolder(){
-              console.log("TODO implement open folder in system explorer!");
+              var fullPathOfProjFile = currentWindow.projectDetails.fullPath + "/" + currentWindow.projectDetails.projectFiles[0].fileName;
+              console.log('Opening ', fullPathOfProjFile, ' in system explorer');
+              ipcRenderer.send('openitem',fullPathOfProjFile);
             }
           </script>
         </ul>

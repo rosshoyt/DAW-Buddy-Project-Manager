@@ -3,10 +3,11 @@ const url = require('url');
 const path = require('path');
 const fs = require('fs');
 const Store = require('electron-store');
-
 const { app, BrowserWindow, Menu, ipcMain } = electron;
+const { shell } = require('electron')
 
 const store = new Store();
+
 
 // SET ENV
 //process.env.NODE_ENV = 'production';
@@ -124,10 +125,16 @@ ipcMain.on('item:add', function (e, item) {
     newWindow.close();
 });
 
-
+// user wants to view project details in new detail window
 ipcMain.on('getprojectdetail', function(e, projectPath){
     createDetailWindow(projectPath);
 });
+
+// user requests to open path location in system explorer
+ipcMain.on('openitem', function(e,fullPath){
+    shell.showItemInFolder(fullPath);
+});
+
 
 // helper function which returns index of item in JS array, or -1 if not found
 Array.prototype.indexOfObject = function (property, value) {
