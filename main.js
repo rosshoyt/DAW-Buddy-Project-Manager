@@ -5,7 +5,11 @@ const fs = require('fs');
 const Store = require('electron-store');
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 const { shell } = require('electron')
+//import DAWProjectEntry from 'DAWP rojectEntry.js'
+const DAWProjectEntry = require('./DAWProjectEntry.js')
 
+
+// Create in-memory database TODO persist data beyond single session    
 const store = new Store();
 
 
@@ -37,7 +41,7 @@ app.on('ready', function () {
         app.quit();
     });
     // Set window size
-    mainWindow.setSize(1024,768);
+    mainWindow.setSize(1024, 768);
 
     // Build menu from template
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
@@ -52,34 +56,6 @@ app.on('ready', function () {
 // })
 
 
-// Perform the directory scan on array of directory paths to be searched
-// TODO Scan more than just the first (index=0) directory passed in
-ipcMain.on('startscan', function (e, directories) {
-    console.log('[Main Thread] Scanning directories:');
-
-    // TODO Implement New Approach (Recursive + sencond, iterative)
-    // const projectDirectories = getPossibleDAWProjectDirectories(directories[0]);
-    // projectDirectories.forEach((item,index) => {
-    //     console.log({ index, item });
-    // });
-
-    // OG Approach(recursive):
-    // Scan directories, extract relevant data and return results to renderer thread
-    // TODO ensure no duplicate paths are searched unnecissarily
-    // First find all directories which contain a music project
-    // TODO support more than just first listed directory path
-    const projects = getAllDAWProjects(directories[0]);
-    console.log('All Ableton directories found in ', directories[0]);
-    projects.forEach((item,index) => {
-        //console.log({ index, item });
-        
-        store.set(item.fullPath, item);
-        console.log(store.get(item.fullPath));
-    });
-
-    // Send projects to renderer thread for display
-    mainWindow.webContents.send('scan:complete', projects);
-});
 
 // Handle create add window
 function createDetailWindow(projectPath) {
@@ -89,7 +65,7 @@ function createDetailWindow(projectPath) {
     // create new window with dimensions 3/4 size of main window
     let newWindow = new BrowserWindow({
         width: 768,
-        height: 576, 
+        height: 576,
         title: projDetails.projectName + ' Project Details',
 
         // TODO Implement secure solution https://stackoverflow.com/a/57049268
@@ -113,27 +89,254 @@ function createDetailWindow(projectPath) {
         detailWindows.delete(newWindow);
         newWindow = null;
     });
-    
-    detailWindows.add(newWindow);
-    
-}
 
+    detailWindows.add(newWindow);
+
+}
 // Catch item:add TODO remove
 ipcMain.on('item:add', function (e, item) {
     //console.log(item);
     mainWindow.webContents.send('item:add', item);
     newWindow.close();
 });
-
 // user wants to view project details in new detail window
-ipcMain.on('getprojectdetail', function(e, projectPath){
+ipcMain.on('getprojectdetail', function (e, projectPath) {
     createDetailWindow(projectPath);
 });
-
 // user requests to open path location in system explorer
-ipcMain.on('openitem', function(e,fullPath){
-    shell.showItemInFolder(fullPath);
+// TODO Add Windows, Linux Support
+ipcMain.on('openitem', function (e, fullPath) {
+    var preparedPath;
+    switch (process.platform) {
+        case 'win32':
+            preparedPath = fullPath.replace(/\//g, '\\');
+            break;
+        case 'linux':
+            preparedPath = "\"" + fullPath + "\"";
+            break;
+        default:
+            preparedPath = fullPath;
+    }
+
+    console.log('Main thread - opening ', preparedPath);
+    shell.showItemInFolder(preparedPath);
 });
+
+// Perform the directory scan on array of directory paths to be searched
+// TODO Scan more than just the first (index=0) directory passed in
+ipcMain.on('startscan', function (e, directories) {
+    console.log('[Main Thread] Scanning directories:');
+
+    // Recursively scan directories to find possible DAW project directories
+    const projectEntries = getDAWProjects(directories[0]);
+    // Analyze each directory and extract database entries
+    projectEntries.forEach((projectEntry, index) => {
+        getDAWProjectInfo(projectEntry);
+        console.log({ index, projectEntry });
+        
+        // TODO ensure entry has unique ID
+        store.set(projectEntry.fullPath, projectEntry);
+        mainWindow.webContents.send('scan:complete:singleentry', projectEntry);
+        //console.log(projectEntry);
+    });
+
+
+
+    // OG Approach(recursive):
+    // Scan directories, extract relevant data and return results to renderer thread
+    // TODO ensure no duplicate paths are searched unnecissarily
+    // First find all directories which contain a music project
+    // TODO support more than just first listed directory path
+    // const projects = getAllDAWProjects(directories[0]);
+    // console.log('All Ableton directories found in ', directories[0]);
+    // projects.forEach((item,index) => {
+    //     //console.log({ index, item });
+    //     store.set(item.fullPath, item);
+    //     //console.log(store.get(item.fullPath));
+    // });
+
+    // Send projects to renderer thread for display
+    // mainWindow.webContents.send('scan:complete', projects);
+});
+
+
+
+// TODO FIX
+// Method that recursively searches a provided directory path for possible DAW Project Directories
+const getDAWProjects = function (dirPath, arrayOfProjectPaths) {
+    arrayOfProjectPaths = arrayOfProjectPaths || [];
+    var files = fs.readdirSync(dirPath);
+
+    files.forEach(function (file) {
+        // get filesystem info on current file
+        filePath = dirPath + "/" + file;
+        var fsInfo = fs.statSync(filePath);
+
+        if (fsInfo.isDirectory()) {
+            //dirBirthtime = fsInfo.birthtime;
+            arrayOfProjectPaths = getDAWProjects(filePath, arrayOfProjectPaths);
+        } else {
+            var dawType;
+            console.log('Testing file extension');
+            switch (path.extname(file)) {
+                case '.als':
+                    dawType = 'Ableton';
+                    break;
+                case '.ptx':
+                    dawType = 'ProTools';
+                    break;
+                case '.cpr':
+                    dawType = 'Cubase';
+                    break;
+                default:
+                    dawType = 'none';
+            }
+            if (dawType !== 'none') {
+                // check if project has already been discovered by comparing the primary key (full directory path)
+                var i = arrayOfProjectPaths.indexOfObject('fullPath', dirPath);
+                if (i == -1) {
+
+                    // Project hasn't been added, add to list!
+                    //var dawProject = getDefaultProjectEntry;
+                    let dawProject = new DAWProjectEntry();
+                    dawProject.fullPath = dirPath;
+                    // TODO validate DAWtype designation process to support projects with multiple types of DAW files (.ptx & .als) in same directory
+                    dawProject.dawType = dawType;
+                    dawProject.directoryCreated = fs.statSync(dirPath).birthtime;
+                    dawProject.projectName = dirPath.removeAllPrecedingDirectories(dirPath);
+                    arrayOfProjectPaths.push(dawProject); // Primary Key UID for DAW Project
+                }
+            }
+        }
+    });
+    return arrayOfProjectPaths;
+}
+
+const getDAWProjectInfo = function (dawProjectEntry) {
+    // get the files in the directory
+    var files = fs.readdirSync(dawProjectEntry.fullPath);
+
+
+    // the final, persistable project analysis
+    //var projectEntry = getDefaultProjectEntry();
+
+    // analyze each file
+    files.forEach(function (file) {
+        // get filesystem info on current file
+        var filePath = dawProjectEntry.fullPath + "/" + file;
+        var fsInfo = fs.statSync(filePath);
+        if (fsInfo.isDirectory()) {
+            dawProjectEntry.subFolders.push(file);
+        } else {
+
+            switch (path.extname(file)) {
+                case '.als':
+                    dawProjectEntry.projectFiles.push(file);
+                case '.wav':
+                    dawProjectEntry.mediaFiles.push(file);
+                    break;
+                default:
+                    break;
+            }
+        }
+    });
+    //return projectEntry;
+    // switch (dawProjectEntry.dawType) {
+    //     case '.als':
+    //         analyzeAbletonProject(dawProjectEntry, files);
+    //         break;
+    //     // case '.ptx':
+    //     //     break;
+    //     // case '.cpr':
+    //     //     break;
+    //     default:
+    //         console.log('DAW Project format ', dawProjectEntry.dawType, ' is not yet supported.');
+    // }
+}
+// Method that recursively searches a provided directory path for DAW projects
+// TODO test if works when base directory is itself a music project (should work)
+// const getAllDAWProjects = function (dirPath, arrayOfProjects) {
+//     arrayOfProjects = arrayOfProjects || [];
+//     var files = fs.readdirSync(dirPath);
+
+//     files.forEach(function (file) {
+//         // get filesystem info on current file
+//         filePath = dirPath + "/" + file;
+//         var fsInfo = fs.statSync(filePath);
+
+//         if (fsInfo.isDirectory()) {
+//             //dirBirthtime = fsInfo.birthtime;
+//             arrayOfProjects = getAllDAWProjects(filePath, arrayOfProjects);
+//         } else {
+//             var dawType;
+//             console.log('Testing file extension');
+//             switch (path.extname(file)) {
+//                 case '.als':
+//                     dawType = 'Ableton';
+//                     break;
+//                 case '.ptx':
+//                     dawType = 'ProTools';
+//                     break;
+//                 case '.cpr':
+//                     dawType = 'Cubase';
+//                     break;
+//                 default:
+//                     dawType = 'none';
+//             }
+//             if (dawType !== 'none') {
+//                 // check if project has already been discovered by comparing the primary key (full directory path)
+//                 var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
+//                 if (i >= 0) {
+//                     // project has been added, increment numProjFiles of existing entry
+//                     var project = arrayOfProjects[i];
+//                     project.numProjFiles++;
+//                     // TODO: create function so that projectFIle objects are created in one place
+//                     var projectFile = {
+//                         fileName: file,
+//                         fullPath: filePath,
+//                         dateCreated: fsInfo.birthtime
+//                     }
+//                     project.projectFiles.push(projectFile);
+
+//                 } else {
+//                     // Project hasn't been added, create and add project to list!
+
+//                     // Get the project name from the containing dir's path 
+//                     // TODO could offer more options for determining name of project (name of earliest proj file in directory could be option )
+//                     // TODO validate string input 
+//                     var projectName = dirPath.substring(dirPath.lastIndexOf("/")+1, dirPath.length);
+
+//                     // get project directory's birthtime TODO fix, currently gets file's birthtime
+//                     var projectDirBirthtime = fsInfo.birthtime;
+//                     console.log('Adding project at ', dirPath, ' with project name \"', projectName, '\" with birthtime ', projectDirBirthtime);
+
+//                     var projectFile = {
+//                         fileName: file,
+//                         fullPath: filePath,
+//                         dateCreated: fsInfo.birthtime
+//                     }
+
+//                     var dawProject = {
+//                         fullPath: dirPath, // Primary Key UID for DAW Project
+//                         daw: dawType,
+//                         projectName: projectName, 
+//                         dateCreated: projectDirBirthtime,
+//                         numProjFiles: 1,
+//                         projectFiles: [
+//                             projectFile
+//                         ]
+//                         //,mediaFiles: [{}]
+//                     };
+//                     arrayOfProjects.push(dawProject);
+
+//                     
+
+//                 }
+//             }
+//         }
+//     });
+//     return arrayOfProjects;
+// }
 
 
 // helper function which returns index of item in JS array, or -1 if not found
@@ -143,145 +346,9 @@ Array.prototype.indexOfObject = function (property, value) {
     }
     return -1;
 }
-
-// Method that recursively searches a provided directory path for DAW projects
-// TODO test if works when base directory is itself a music project (should work)
-const getAllDAWProjects = function (dirPath, arrayOfProjects) {
-    arrayOfProjects = arrayOfProjects || [];
-    var files = fs.readdirSync(dirPath);
-
-    files.forEach(function (file) {
-        // get filesystem info on current file
-        filePath = dirPath + "/" + file;
-        var fsInfo = fs.statSync(filePath);
-
-        if (fsInfo.isDirectory()) {
-            //dirBirthtime = fsInfo.birthtime;
-            arrayOfProjects = getAllDAWProjects(filePath, arrayOfProjects);
-        } else {
-            var dawType;
-            console.log('Testing file extension');
-            switch (path.extname(file)) {
-                case '.als':
-                    dawType = 'Ableton';
-                    break;
-                case '.ptx':
-                    dawType = 'ProTools';
-                    break;
-                case '.cpr':
-                    dawType = 'Cubase';
-                    break;
-                default:
-                    dawType = 'none';
-            }
-            if (dawType !== 'none') {
-                // check if project has already been discovered by comparing the primary key (full directory path)
-                var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
-                if (i >= 0) {
-                    // project has been added, increment numProjFiles of existing entry
-                    var project = arrayOfProjects[i];
-                    project.numProjFiles++;
-                    // TODO: create function so that projectFIle objects are created in one place
-                    var projectFile = {
-                        fileName: file,
-                        dateCreated: fsInfo.birthtime
-                    }
-                    project.projectFiles.push(projectFile);
-                    
-                } else {
-                    // Project hasn't been added, create and add project to list!
-
-                    // Get the project name from the containing dir's path 
-                    // TODO could offer more options for determining name of project (name of earliest proj file in directory could be option )
-                    // TODO validate string input 
-                    var projectName = dirPath.substring(dirPath.lastIndexOf("/")+1, dirPath.length);
-                    
-                    // get project directory's birthtime TODO fix, currently gets file's birthtime
-                    var projectDirBirthtime = fsInfo.birthtime;
-                    console.log('Adding project at ', dirPath, ' with project name \"', projectName, '\" with birthtime ', projectDirBirthtime);
-
-                    var projectFile = {
-                        fileName: file,
-                        dateCreated: fsInfo.birthtime
-                    }
-
-                    var dawProject = {
-                        fullPath: dirPath, // Primary Key UID for DAW Project
-                        daw: dawType,
-                        projectName: projectName, 
-                        dateCreated: projectDirBirthtime,
-                        numProjFiles: 1,
-                        projectFiles: [
-                            projectFile
-                        ]
-                        //,mediaFiles: [{}]
-                    };
-                    arrayOfProjects.push(dawProject);
-
-                    // Example object with nested array of objects:
-                    // const data = {
-                    //   code: 42,
-                    //   items: [{
-                    //       id: 1,
-                    //       name: 'foo'
-                    //     }, {
-                    //       id: 2,
-                    //       name: 'bar'
-                    //     }]
-                    // };
-
-                }
-            }
-        }
-    });
-    return arrayOfProjects;
-}
-
-// TODO FIX
-// Method that recursively searches a provided directory path for possible DAW Project Directories
-const getPossibleDAWProjectDirectories = function (dirPath, possibleProjectDirectories) {
-    possibleProjectDirectories = possibleProjectDirectories || [];
-    var files = fs.readdirSync(dirPath);
-
-    files.forEach(function (file) {
-        // get filesystem info on current file
-        filePath = dirPath + "/" + file;
-        var fsInfo = fs.statSync(filePath);
-
-        if (fsInfo.isDirectory()) {
-            //dirBirthtime = fsInfo.birthtime;
-            possibleProjectDirectories = getPossibleDAWProjectDirectories(filePath, possibleProjectDirectories);
-        } else {
-            var dawType;
-            console.log('Testing file extension');
-            switch (path.extname(file)) {
-                case '.als':
-                    dawType = 'Ableton';
-                    break;
-                case '.ptx':
-                    dawType = 'ProTools';
-                    break;
-                case '.cpr':
-                    dawType = 'Cubase';
-                    break;
-                default:
-                    dawType = 'none';
-            }
-            if (dawType !== 'none') {
-                // check if project has already been discovered by comparing the primary key (full directory path)
-                console.log('fullPath: ', dirPath);
-                // TODO Fix error here
-                if(possibleProjectDirectories.indexOfObject('fullPath', dirPath) == -1){
-                    // we haven't added this possible project directory to list
-                    var possibleProjectDir = {
-                        fullPath: dirPath,
-                        daw: dawType
-                    };
-                    possibleProjectDirectories.push(possibleProjectDir);
-                }
-            }
-        }
-    });
+// TODO validate input
+String.prototype.removeAllPrecedingDirectories = function(fullPath){
+    return fullPath.substring(fullPath.lastIndexOf("/")+1, fullPath.length);
 }
 
 // Create menu template
