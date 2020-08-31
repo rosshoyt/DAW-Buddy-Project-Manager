@@ -44,7 +44,7 @@ app.on('ready', function () {
     mainWindow.setSize(1024, 768);
 
     // Build menu from template
-    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+    const mainMenu = Menu.buildFromTemplate(getMenuTemplate());
     // Insert menu
     Menu.setApplicationMenu(mainMenu);
 });
@@ -133,7 +133,7 @@ ipcMain.on('startscan', function (e, directories) {
     projectEntries.forEach((projectEntry, index) => {
         getDAWProjectInfo(projectEntry);
         console.log({ index, projectEntry });
-        
+
         // TODO ensure entry has unique ID
         store.set(projectEntry.fullPath, projectEntry);
         mainWindow.webContents.send('scan:complete:singleentry', projectEntry);
@@ -232,6 +232,7 @@ const getDAWProjectInfo = function (dawProjectEntry) {
             switch (path.extname(file)) {
                 case '.als':
                     dawProjectEntry.projectFiles.push(file);
+                    break;
                 case '.wav':
                     dawProjectEntry.mediaFiles.push(file);
                     break;
@@ -240,103 +241,7 @@ const getDAWProjectInfo = function (dawProjectEntry) {
             }
         }
     });
-    //return projectEntry;
-    // switch (dawProjectEntry.dawType) {
-    //     case '.als':
-    //         analyzeAbletonProject(dawProjectEntry, files);
-    //         break;
-    //     // case '.ptx':
-    //     //     break;
-    //     // case '.cpr':
-    //     //     break;
-    //     default:
-    //         console.log('DAW Project format ', dawProjectEntry.dawType, ' is not yet supported.');
-    // }
 }
-// Method that recursively searches a provided directory path for DAW projects
-// TODO test if works when base directory is itself a music project (should work)
-// const getAllDAWProjects = function (dirPath, arrayOfProjects) {
-//     arrayOfProjects = arrayOfProjects || [];
-//     var files = fs.readdirSync(dirPath);
-
-//     files.forEach(function (file) {
-//         // get filesystem info on current file
-//         filePath = dirPath + "/" + file;
-//         var fsInfo = fs.statSync(filePath);
-
-//         if (fsInfo.isDirectory()) {
-//             //dirBirthtime = fsInfo.birthtime;
-//             arrayOfProjects = getAllDAWProjects(filePath, arrayOfProjects);
-//         } else {
-//             var dawType;
-//             console.log('Testing file extension');
-//             switch (path.extname(file)) {
-//                 case '.als':
-//                     dawType = 'Ableton';
-//                     break;
-//                 case '.ptx':
-//                     dawType = 'ProTools';
-//                     break;
-//                 case '.cpr':
-//                     dawType = 'Cubase';
-//                     break;
-//                 default:
-//                     dawType = 'none';
-//             }
-//             if (dawType !== 'none') {
-//                 // check if project has already been discovered by comparing the primary key (full directory path)
-//                 var i = arrayOfProjects.indexOfObject('fullPath', dirPath);
-//                 if (i >= 0) {
-//                     // project has been added, increment numProjFiles of existing entry
-//                     var project = arrayOfProjects[i];
-//                     project.numProjFiles++;
-//                     // TODO: create function so that projectFIle objects are created in one place
-//                     var projectFile = {
-//                         fileName: file,
-//                         fullPath: filePath,
-//                         dateCreated: fsInfo.birthtime
-//                     }
-//                     project.projectFiles.push(projectFile);
-
-//                 } else {
-//                     // Project hasn't been added, create and add project to list!
-
-//                     // Get the project name from the containing dir's path 
-//                     // TODO could offer more options for determining name of project (name of earliest proj file in directory could be option )
-//                     // TODO validate string input 
-//                     var projectName = dirPath.substring(dirPath.lastIndexOf("/")+1, dirPath.length);
-
-//                     // get project directory's birthtime TODO fix, currently gets file's birthtime
-//                     var projectDirBirthtime = fsInfo.birthtime;
-//                     console.log('Adding project at ', dirPath, ' with project name \"', projectName, '\" with birthtime ', projectDirBirthtime);
-
-//                     var projectFile = {
-//                         fileName: file,
-//                         fullPath: filePath,
-//                         dateCreated: fsInfo.birthtime
-//                     }
-
-//                     var dawProject = {
-//                         fullPath: dirPath, // Primary Key UID for DAW Project
-//                         daw: dawType,
-//                         projectName: projectName, 
-//                         dateCreated: projectDirBirthtime,
-//                         numProjFiles: 1,
-//                         projectFiles: [
-//                             projectFile
-//                         ]
-//                         //,mediaFiles: [{}]
-//                     };
-//                     arrayOfProjects.push(dawProject);
-
-//                     
-
-//                 }
-//             }
-//         }
-//     });
-//     return arrayOfProjects;
-// }
 
 
 // helper function which returns index of item in JS array, or -1 if not found
@@ -347,27 +252,28 @@ Array.prototype.indexOfObject = function (property, value) {
     return -1;
 }
 // TODO validate input
-String.prototype.removeAllPrecedingDirectories = function(fullPath){
-    return fullPath.substring(fullPath.lastIndexOf("/")+1, fullPath.length);
+String.prototype.removeAllPrecedingDirectories = function (fullPath) {
+    return fullPath.substring(fullPath.lastIndexOf("/") + 1, fullPath.length);
 }
-
-// Create menu template
-const mainMenuTemplate = [
-    {
-        label: process.platform == 'darwin' ? '' : app.getName(),
-        submenu: [
-            { role: 'about' },
-            { type: 'separator' },
-            { role: 'services' },
-            { type: 'separator' },
-            { role: 'hide' },
-            { role: 'hideothers' },
-            { role: 'unhide' },
-            { type: 'separator' },
-            { role: 'quit' }
-        ]
-    },
-    {
+const getMenuTemplate = function () {
+    let mainMenuTemplate = [];
+    if (process.platform == 'darwin') {
+        mainMenuTemplate.push({
+            label: process.platform = app.getName(),
+            submenu: [
+                { role: 'about' },
+                { type: 'separator' },
+                { role: 'services' },
+                { type: 'separator' },
+                { role: 'hide' },
+                { role: 'hideothers' },
+                { role: 'unhide' },
+                { type: 'separator' },
+                { role: 'quit' }
+            ]
+        });
+    }
+    mainMenuTemplate.push({
         label: 'File',
         submenu: [
             // {
@@ -390,24 +296,85 @@ const mainMenuTemplate = [
                 }
             }
         ]
-    }
-];
-
-// Add developer tools option if in dev
-if (process.env.NODE_ENV !== 'production') {
-    mainMenuTemplate.push({
-        label: 'Developer Tools',
-        submenu: [
-            {
-                role: 'reload'
-            },
-            {
-                label: 'Toggle DevTools',
-                accelerator: process.platform == 'darwin' ? 'Command+I' : 'Ctrl+I',
-                click(item, focusedWindow) {
-                    focusedWindow.toggleDevTools();
-                }
-            }
-        ]
     });
+
+    // Add developer tools option if in dev
+    if (process.env.NODE_ENV !== 'production') {
+        mainMenuTemplate.push({
+            label: 'Developer Tools',
+            submenu: [
+                {
+                    role: 'reload'
+                },
+                {
+                    label: 'Toggle DevTools',
+                    accelerator: process.platform == 'darwin' ? 'Command+I' : 'Ctrl+I',
+                    click(item, focusedWindow) {
+                        focusedWindow.toggleDevTools();
+                    }
+                }
+            ]
+        });
+    }
+    return mainMenuTemplate;
 }
+// // Create menu template
+// const mainMenuTemplate = [
+//     {
+//         label: process.platform == 'darwin' ? '' : app.getName(),
+//         submenu: [
+//             { role: 'about' },
+//             { type: 'separator' },
+//             { role: 'services' },
+//             { type: 'separator' },
+//             { role: 'hide' },
+//             { role: 'hideothers' },
+//             { role: 'unhide' },
+//             { type: 'separator' },
+//             { role: 'quit' }
+//         ]
+//     },
+//     {
+//         label: 'File',
+//         submenu: [
+//             // {
+//             //     label: 'Add Item',
+//             //     click() {
+//             //         createDetailWindow();
+//             //     }
+//             // },
+//             {
+//                 label: 'Clear Items',
+//                 click() {
+//                     mainWindow.webContents.send('item:clear');
+//                 }
+//             },
+//             {
+//                 label: 'Quit',
+//                 accelerator: process.platform == 'darwin' ? 'Command+Q' : 'Ctrl+Q',
+//                 click() {
+//                     app.quit();
+//                 }
+//             }
+//         ]
+//     }
+// ];
+
+// // Add developer tools option if in dev
+// if (process.env.NODE_ENV !== 'production') {
+//     mainMenuTemplate.push({
+//         label: 'Developer Tools',
+//         submenu: [
+//             {
+//                 role: 'reload'
+//             },
+//             {
+//                 label: 'Toggle DevTools',
+//                 accelerator: process.platform == 'darwin' ? 'Command+I' : 'Ctrl+I',
+//                 click(item, focusedWindow) {
+//                     focusedWindow.toggleDevTools();
+//                 }
+//             }
+//         ]
+//     });
+// }
