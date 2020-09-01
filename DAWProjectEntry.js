@@ -11,8 +11,9 @@ class DAWProjectEntry {
         //this.files = []
         this.dawFiles = [];
         //this.subFolders = [];
-        this.mediaFiles = [];
-        this.miscFiles = [];
+        this.audioFiles = [];
+        this.videoFiles = [];
+        this.uncatFiles = []; // Uncategorized files
         
     }
 }

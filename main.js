@@ -46,13 +46,14 @@ app.on('ready', function () {
 
 // Handle create detail window
 function createDetailWindow(projectPath) {
-    const projDetails = store.get(projectPath);
-    console.log('creating detail window for project ', projDetails);
+    console.log('creating detail window for project at path', projectPath);
+    const projEntry = store.get(projectPath);
+
     // create new window with dimensions 3/4 size of main window
     let newWindow = new BrowserWindow({
         width: 768,
         height: 576,
-        title: projDetails.projectName + ' Project Details',
+        title: projEntry.projectName + ' - DAW Buddy',
         // TODO Implement secure solution https://stackoverflow.com/a/57049268
         // Solves Uncaught ReferenceError: 'require' is not defined
         webPreferences: {
@@ -60,7 +61,7 @@ function createDetailWindow(projectPath) {
         }
     });
     // send project details object to detail window
-    newWindow.projectDetails = projDetails;
+    newWindow.projectDetails = projEntry;
     // load html into window
     newWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'detailWindow.html'),
@@ -113,6 +114,8 @@ ipcMain.on('startscan', function (e, directories) {
         //console.log('Analyzing ', projectEntry.projectName);
         //console.log({ index, projectEntry });
         projectEntry.dir.files = scanDAWProjectFolder(projectEntry.dir.fullPath);
+        // extract more high-level data from the project entry
+        analyzeProjectDir(projectEntry.dir.files, projectEntry);
         //console.log({ index, projectEntry });
         console.dir(projectEntry, { depth: null });
         // TODO ensure entry has unique ID
@@ -152,7 +155,7 @@ const findDAWProjects = function (dirPath, arrayOfProjectPaths) {
             if (dawType !== 'none') {
                 // check if project has already been discovered by comparing the primary key (full directory path)
                 console.log('Checking if path has been added: ', dirPath);
-                var i = arrayOfProjectPaths.indexOfObjectWithNestedProp([ 'dir','fullPath'], dirPath);
+                var i = arrayOfProjectPaths.indexOfObjectWithNestedProp(['dir', 'fullPath'], dirPath);
                 if (i == -1) {
                     // Project hasn't been added, add to list!
                     let dawProject = new DAWProjectEntry();
@@ -172,6 +175,60 @@ const findDAWProjects = function (dirPath, arrayOfProjectPaths) {
     return arrayOfProjectPaths;
 }
 
+const analyzeProjectDir = function (files, dawProjectEntry) {
+    console.log('analyzing project dir', dawProjectEntry.dir.fullPath);
+    console.log('files = ', files);
+    files.forEach(function (file) {
+        dawProjectEntry.totalBytes += file.byteSize;
+        if (file.isDirectory) {
+            analyzeProjectDir(file.files, dawProjectEntry);
+        } else {
+            switch (file.extension) {
+                // DAW files
+                case '.als':
+                    dawProjectEntry.dawFiles.push(file);
+                    break;
+                case '.ptx':
+                    dawProjectEntry.dawFiles.push(file);
+                    break;
+                case '.logic':
+                    dawProjectEntry.dawFiles.push(file);
+                    break;
+                case '.als':
+                    dawProjectEntry.dawFiles.push(file);
+                    break;
+
+
+                // audio files
+                case '.wav':
+                    dawProjectEntry.audioFiles.push(file);
+                    break;
+                case '.aiff':
+                    dawProjectEntry.audioFiles.push(file);
+                    break;
+                case '.mp3':
+                    dawProjectEntry.audioFiles.push(file);
+                    break;
+                case '.ogg':
+                    dawProjectEntry.audioFiles.push(file);
+                    break;
+
+                // video files
+                case '.mp4':
+                    dawProjectEntry.videoFiles.push(file);
+                    break;
+                case '.mov':
+                    dawProjectEntry.videoFiles.push(file);
+                    break;
+                // other files - 'uncategorized'
+                default:
+                    dawProjectEntry.uncatFiles.push(file);
+                    break;
+            }
+        }
+    });
+    //for(let i = 0; i < fileArray.length);
+}
 // function that returns an object with information about a file or directory
 // TODO implement factory pattern
 // TODO move ALL fs.statSync calls to this function
@@ -180,7 +237,7 @@ const createFileInfoObject = function (fullPath) {
     return {
         fullPath: fullPath,
         isDirectory: fileStats.isDirectory(),
-        //extension: '',
+        extension: '',
         timeLastAccessed: fileStats.atime,
         timeLastModified: fileStats.mtime,
         // TODO determine if need the time of last file status change
@@ -191,7 +248,7 @@ const createFileInfoObject = function (fullPath) {
 }
 
 const scanDAWProjectFolder = function (dirPath) {
-    console.log('Scanning Folder ', dirPath);
+    //console.log('Scanning Folder ', dirPath);
     // create the file info list to be returned
     let fileInfos = [];
 
@@ -205,15 +262,18 @@ const scanDAWProjectFolder = function (dirPath) {
         // TODO make sure filePath is configured for host OS
         var filePath = dirPath + "/" + fileName;
 
-        //var fsInfo = fs.statSync(filePath);
-
-        // create fileName's persistable FileInfo object
+        // create the persistable FileInfo object
         let fileInfo = createFileInfoObject(filePath);
 
         if (fileInfo.isDirectory) {
+            // Recursively scan sub-directory
             fileInfo.files = scanDAWProjectFolder(filePath);
-            //dawProjectEntry.subFolders.push();
         }
+        else {
+            // track the file's extension
+            fileInfo.extension = path.extname(fileInfo.fullPath);
+        }
+        // add to list
         fileInfos.push(fileInfo);
     });
     return fileInfos;
@@ -290,9 +350,9 @@ Array.prototype.indexOfObjectWithNestedProp = function (properties, value) {
             // get initial object
             var nestedObj = this[i][properties[0]];
             // iterate to nested object
-            for (var j = 1, propLen = properties.length; j < propLen; j++) 
+            for (var j = 1, propLen = properties.length; j < propLen; j++)
                 nestedObj = nestedObj[properties[j]];
-            if(nestedObj === value) return i; 
+            if (nestedObj === value) return i;
         }
     }
     return -1;
@@ -305,13 +365,3 @@ Array.prototype.indexOfObject = function (property, value) {
     }
     return -1;
 }
-
-// function printObjectRecursively (target) {
-//     if (typeof target === 'object') {
-//       for (const key in target) {
-//         deepIterator(target[key]);
-//       }
-//     } else {
-//       console.log(target);
-//     }
-//   }

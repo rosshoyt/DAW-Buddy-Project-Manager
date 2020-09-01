@@ -1,7 +1,7 @@
 {
-  "name": "shoppinglist",
+  "name": "daw-buddy",
   "version": "1.0.0",
-  "description": "Shopping list desktop app",
+  "description": "Digital-Audio-Workstation Project-Management Dekstop App",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
