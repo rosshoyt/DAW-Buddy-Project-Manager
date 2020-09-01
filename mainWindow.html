@@ -134,11 +134,11 @@
         //newRow.addEventListener('click', selectRow);
         newRow.addEventListener('dblclick', openRowDetailWindow);
 
-
+ 
         // Append a text node to the cell
         var projectName = document.createTextNode(project.projectName);
         var dateCreated = document.createTextNode(project.directoryCreated);
-        var numProjFiles = document.createTextNode(project.projectFiles.length);
+        var numProjFiles = document.createTextNode(project.dawFiles.length);
 
         // Insert a cell in the row at index 0
         var cell1 = newRow.insertCell(0);
