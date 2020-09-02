@@ -16,7 +16,7 @@
           <script>
             const { ipcRenderer } = require('electron');
             function openFolder(){
-              var fullPathOfProjFile = currentWindow.projectDetails.projectFiles[0].fullPath;//currentWindow.projectDetails.fullPath + "/" + currentWindow.projectDetails.projectFiles[0].fileName;
+              var fullPathOfProjFile = currentWindow.projectDetails.projectFiles[0].fullPath; //currentWindow.projectDetails.fullPath + "/" + currentWindow.projectDetails.projectFiles[0].fileName;
               console.log('Opening ', fullPathOfProjFile, ' in system explorer');
               ipcRenderer.send('openitem',fullPathOfProjFile);
             }

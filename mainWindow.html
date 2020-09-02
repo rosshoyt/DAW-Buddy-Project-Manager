@@ -4,6 +4,7 @@
 <head>
   <title>DAW Buddy</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="./styles.css" type="text/css">
 </head>
 
 <body>
@@ -14,7 +15,7 @@
   </nav>
 
   <body>
-    
+
     <a class="waves-effect waves-light btn-large light-blue lighten-1" onclick="clickButton()">
       <!--i class="material-icons left">home</i-->Add Search Folder</a>
     <script>
@@ -42,10 +43,10 @@
           // Update UI based on number of list elements in directory list:
           var x = document.getElementById("folderslist").childElementCount;
           var listLabelText = '';
-          var listLabelPositionClass = 'left'; 
+          var listLabelPositionClass = 'left';
           //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
           var startButton = document.querySelector("#startscanbtn");
-           // update text and position of info label, and enable/disable start button
+          // update text and position of info label, and enable/disable start button
           if (x == 0) {
             label.innerText = 'Add a search folder to get started';
             label.classList.remove('left');
@@ -59,17 +60,18 @@
             label.classList.add('left');
             if (startButton.classList.contains('disabled')) {
               startButton.classList.remove('disabled');
-              
+
             }
           }
-         
+
         }).catch(err => {
           console.log(err);
         });
 
       }
     </script>
-    <a class="waves-effect waves-light btn-large right green accent-3 disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a>
+    <a class="waves-effect waves-light btn-large right green accent-3 disabled" id="startscanbtn"
+      onclick="clickStart()">Start Scan</a>
     <script>
       function clickStart() {
         let folders = document.getElementById("folderslist").querySelectorAll('li');
@@ -85,7 +87,7 @@
       }
     </script>
     <div>
-      <label id="folderslistlabel" class="right">Add a search folder to get started</label>
+      <label id="folderslistlabel" class="right"><--Add a search folder to get started</label>
     </div>
     <div class="section">
       <!--a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a-->
@@ -111,31 +113,45 @@
       </script>
     </div>
     <!--label id="projectslistlabel"></label-->
-    <table id="projectsTable" class="striped">
-      <thead>
-        <tr>
-          <th>Project Name</th>
-          <th>Date Created</th>
-          <th>Number of Project Files</th>
-          <!--th></th-->
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="container">
+      <table id="projectsTable" class="striped">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Date Created</th>
+            <th>DAW Type</th>
+            <th>Total Size</th>
+            <!--th></th-->
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
     <script>
       // fill table with single DAW project
       ipcRenderer.on('scan:complete:singleentry', function (e, project) {
         //const table = document.getElementById('projectsTable');
-        createRow(project);          
+        createRow(project);
       });
 
       // fill table with DAW projects entries
       ipcRenderer.on('scan:complete', function (e, projects) {
         //const table = document.getElementById('projectsTable');
         projects.forEach(function (project) {
-          createRow(project);          
+          createRow(project);
         });
       });
+
+      function getReadableFileSizeString(fileSizeInBytes) {
+        var i = -1;
+        var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+        do {
+          fileSizeInBytes = fileSizeInBytes / 1024;
+          i++;
+        } while (fileSizeInBytes > 1024);
+
+        return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+      };
 
       function createRow(project) {
         // TODO pass tableRef into method?
@@ -144,29 +160,32 @@
         // Insert a row at the end of the table
         var newRow = tableRef.insertRow(-1);
         newRow.id = project.dir.fullPath;
-        //newRow.addEventListener('click', selectRow);
+        //newRow.addEventListener('click', selectRow); // TODO
         newRow.addEventListener('dblclick', openRowDetailWindow);
 
- 
+
         // Append a text node to the cell
         var projectName = document.createTextNode(project.projectName);
         var dateCreated = document.createTextNode(project.dir.timeCreated);
-        var numProjFiles = document.createTextNode(project.dawFiles.length);
-        
+        var dawType = document.createTextNode(project.dawType);
+        var sizeBytes = document.createTextNode(getReadableFileSizeString(project.totalBytes));
+        //var numProjFiles = document.createTextNode(project.dawFiles.length);
+      
+
 
         // Insert a cell in the row at index 0
         var cell1 = newRow.insertCell(0);
         var cell2 = newRow.insertCell(1);
         var cell3 = newRow.insertCell(2);
+        var cell4 = newRow.insertCell(3);
 
         cell1.appendChild(projectName);
         cell2.appendChild(dateCreated);
-        cell3.appendChild(numProjFiles);
+        cell3.appendChild(dawType);
+        //cell3.appendChild(numProjFiles);
+        cell4.appendChild(sizeBytes);
 
       }
-      // document.addEventListener("DOMContentLoaded", () => {
-      //   const rows = document.querySelectorAll("tr[data-")
-      // });
 
       function openRowDetailWindow(r) {
         var id = r.target.parentNode.id;
