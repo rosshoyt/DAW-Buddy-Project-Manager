@@ -5,6 +5,7 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
 </head>
 
 <body>
@@ -27,9 +28,9 @@
       </div>
       <div class="nav-content deep-purple">
         <ul class="tabs tabs-transparent">
-          <li class="tab"><a class="active" href="#tab1">Project Info</a></li>
-          <li class="tab"><a href="#tab2">Media Files</a></li>
-          <li class="tab"><a href="#tab3">Data Insights</a></li>
+          <li class="tab"><a class="active" href="#tab1">Project Files</a></li>
+          <li class="tab"><a href="#tab2">Data Insights</a></li>
+          <li class="tab"><a href="#tab3">Project Timeline</a></li>
         </ul>
       </div>
     </nav>
@@ -169,8 +170,35 @@
         </li>
       </ul>
     </div>
-    <div id="tab2">
-      Hellooo from tab 2
+    <div id="tab2" class="container">
+      <div id="pieChartFileSizes">
+
+      </div>
+      <script>
+        const fillPieChart = function () {
+          var color = ['rgb(56, 75, 126)', 'rgb(18, 36, 37)', 'rgb(34, 53, 101)'];
+          var data = [{
+            values: [55, 26, 5],
+            labels: ['Audio Files', 'Video Files', 'Project Files'],
+            //colors: ['Green', 'Blue', 'Red'],
+            type: 'pie',
+            name: 'Files By Size',
+            marker: {
+              colors: color
+            }
+          }];
+
+
+          var layout = {
+            title: 'Files By Size',
+            height: 400,
+            width: 500
+          };
+
+          Plotly.newPlot('pieChartFileSizes', data, layout, {displaylogo: false});
+          //Plotly.newPlot("")
+        }
+      </script>
     </div>
     <div id="tab3">
       Tab #3 in da house!
@@ -180,10 +208,12 @@
       const electron = require('electron');
       var currentWindow = electron.remote.getCurrentWindow();
       projectname.innerText = currentWindow.projectDetails.projectName;
-      console.log('hello, project name = ', currentWindow.projectDetails.projectName);
+      //console.log('hello, project name = ', currentWindow.projectDetails.projectName);
       var el = document.querySelector('.tabs');
       var instance = M.Tabs.init(el, {});
+      fillPieChart();
     </script>
   </div>
 </body>
+
 </html>
