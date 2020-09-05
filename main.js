@@ -38,6 +38,7 @@ app.on('ready', function () {
     });
     // Set window size
     mainWindow.setSize(1024, 768);
+    
     // Build menu from template
     const mainMenu = Menu.buildFromTemplate(getMenuTemplate());
     // Insert menu
@@ -50,7 +51,7 @@ function createDetailWindow(projectPath) {
     const projEntry = store.get(projectPath);
 
     // create new window with dimensions 3/4 size of main window
-    let newWindow = new BrowserWindow({
+    let detailWindow = new BrowserWindow({
         width: 768,
         height: 576,
         title: projEntry.projectName + ' - DAW Buddy',
@@ -61,19 +62,19 @@ function createDetailWindow(projectPath) {
         }
     });
     // send project details object to detail window
-    newWindow.projectDetails = projEntry;
+    detailWindow.projectDetails = projEntry;
     // load html into window
-    newWindow.loadURL(url.format({
+    detailWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'detailWindow.html'),
         protocol: 'file:',
         slashes: true
     }));
     // Handle garbage collection
-    newWindow.on('close', function () {
-        detailWindows.delete(newWindow);
-        newWindow = null;
+    detailWindow.on('close', function () {
+        detailWindows.delete(detailWindow);
+        detailWindow = null;
     });
-    detailWindows.add(newWindow);
+    detailWindows.add(detailWindow);
 }
 
 // Catch getprojectdetail 
@@ -111,13 +112,10 @@ ipcMain.on('startscan', function (e, directories) {
     //console.log('Found ', projectEntries.length, ' DAW projects');
     // Analyze each directory and extract database entries
     projectEntries.forEach((projectEntry, index) => {
-        //console.log('Analyzing ', projectEntry.projectName);
-        //console.log({ index, projectEntry });
         projectEntry.dir.files = scanDAWProjectFolder(projectEntry.dir.fullPath);
         // extract more high-level data from the project entry
         analyzeProjectDir(projectEntry.dir.files, projectEntry);
-        //console.log({ index, projectEntry });
-        console.dir(projectEntry, { depth: null });
+        //console.dir(projectEntry, { depth: null });
         // TODO ensure entry has unique ID
         store.set(projectEntry.dir.fullPath, projectEntry);
         mainWindow.webContents.send('scan:complete:singleentry', projectEntry);
@@ -154,7 +152,6 @@ const findDAWProjects = function (dirPath, arrayOfProjectPaths) {
             }
             if (dawType !== 'none') {
                 // check if project has already been discovered by comparing the primary key (full directory path)
-                console.log('Checking if path has been added: ', dirPath);
                 var i = arrayOfProjectPaths.indexOfObjectWithNestedProp(['dir', 'fullPath'], dirPath);
                 if (i == -1) {
                     // Project hasn't been added, add to list!
@@ -176,8 +173,8 @@ const findDAWProjects = function (dirPath, arrayOfProjectPaths) {
 }
 
 const analyzeProjectDir = function (files, dawProjectEntry) {
-    console.log('analyzing project dir', dawProjectEntry.dir.fullPath);
-    console.log('files = ', files);
+    //console.log('analyzing project dir', dawProjectEntry.dir.fullPath);
+    //console.log('files = ', files);
     files.forEach(function (file) {
         dawProjectEntry.totalBytes += file.byteSize;
         if (file.isDirectory) {
