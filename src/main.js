@@ -5,8 +5,8 @@ const fs = require('fs');
 const Store = require('electron-store');
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 const { shell } = require('electron');
-const DAWProjectEntry = require('./DAWProjectEntry.js');
-
+const DAWProjectEntry = require('./model/DAWProjectEntry.js');
+console.log('hello');
 // Create in-memory database TODO persist data beyond single session    
 const store = new Store();
 
@@ -27,8 +27,10 @@ app.on('ready', function () {
         }
     });
     // load html into window
+    //var pathname = path.join(__dirname, 'view/mainWindow.html');
+    //console.log('loading from path ', pathname)
     mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'mainWindow.html'),
+        pathname: path.join(__dirname, 'view/mainWindow.html'),
         protocol: 'file:',
         slashes: true
     }));
@@ -65,7 +67,7 @@ function createDetailWindow(projectPath) {
     detailWindow.projectDetails = projEntry;
     // load html into window
     detailWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'detailWindow.html'),
+        pathname: path.join(__dirname, 'view/detailWindow.html'),
         protocol: 'file:',
         slashes: true
     }));
