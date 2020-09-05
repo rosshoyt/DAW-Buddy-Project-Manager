@@ -1,6 +1,6 @@
 class DAWProjectEntry {
-    constructor(){
-        this.projectName = 'unset';
+    constructor(name){
+        this.projectName = name;
         this.dawType = 'unset';
         this.dir = {};
         //this.fullPath = 'unset';

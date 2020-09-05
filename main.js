@@ -38,7 +38,7 @@ app.on('ready', function () {
     });
     // Set window size
     mainWindow.setSize(1024, 768);
-    
+
     // Build menu from template
     const mainMenu = Menu.buildFromTemplate(getMenuTemplate());
     // Insert menu
@@ -154,17 +154,20 @@ const findDAWProjects = function (dirPath, arrayOfProjectPaths) {
                 // check if project has already been discovered by comparing the primary key (full directory path)
                 var i = arrayOfProjectPaths.indexOfObjectWithNestedProp(['dir', 'fullPath'], dirPath);
                 if (i == -1) {
-                    // Project hasn't been added, add to list!
-                    let dawProject = new DAWProjectEntry();
-                    // Get info about project directory
-                    dawProject.dir = createFileInfoObject(dirPath);
-                    //console.log(''dawProject.dir);
                     // Extract name of project from the path
-                    dawProject.projectName = dirPath.removeAllPrecedingDirectories(dirPath);
-                    // Set Project's DAW Type
-                    dawProject.dawType = dawType;// TODO validate DAWtype designation process to support projects with multiple types of DAW files (.ptx & .als) in same directory 
-                    // Add entry to list
-                    arrayOfProjectPaths.push(dawProject);
+                    let projectName = dirPath.removeAllPrecedingDirectories(dirPath);
+                    // Verify if this project is 'Backup (PT)' or 'Session File Backups' (PT)
+                    // TODO allow for users to scan projects in directories deliberately named this way (edge case)
+                    if (projectName !== "Backup" && projectName !== "Session File Backups") {
+                        // Project hasn't been added, add to list!
+                        let dawProject = new DAWProjectEntry(projectName);
+                        // Set info about project's root directory
+                        dawProject.dir = createFileInfoObject(dirPath);
+                        // Set Project's DAW Type
+                        dawProject.dawType = dawType;// TODO validate DAWtype designation process to support projects with multiple types of DAW files (.ptx & .als) in same directory 
+                        // Add entry to list
+                        arrayOfProjectPaths.push(dawProject);
+                    } 
                 }
             }
         }
