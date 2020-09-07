@@ -2,7 +2,7 @@
   "name": "daw-buddy",
   "version": "1.0.0",
   "description": "Digital-Audio-Workstation Project-Management Dekstop App",
-  "main": "src/main.js",
+  "main": "src/controller/main.js",
   "scripts": {
     "start": "electron .",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",

@@ -140,6 +140,13 @@
       createRow(project);
     });
 
+    ipcRenderer.on('scan:complete:allentries', function (e, projects) {
+      projects.forEach(function (project) {
+        sessionStorage.setItem(project.dir.fullPath, JSON.stringify(project));
+        createRow(project);
+      });
+    });
+
     function sortTableAlphanumerically(colNum) {
       sortTable(colNum, "alpha");
     }
@@ -229,7 +236,7 @@
         }
       }
     }
-    
+
     function getReadableFileSizeString(fileSizeInBytes) {
       var i = -1;
       var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
