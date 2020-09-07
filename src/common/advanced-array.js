@@ -1,4 +1,4 @@
-// Wrapper class which provides additional functionality
+// Wrapper class which provides additional functionality to the JS Array class
 class AdvancedArray extends Array {
     //function which returns index of item with nested property in JS array, or -1 if not found
     // TODO optimize

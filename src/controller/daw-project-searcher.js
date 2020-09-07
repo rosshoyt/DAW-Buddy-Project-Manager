@@ -1,7 +1,7 @@
-const AdvancedArray = require('../common/AdvancedArray');
-const DAWProjectEntry = require('../model/DAWProjectEntry');
-const StringUtils = require('../common/StringUtils');
-const FileInfo = require('../model/FileInfo');
+const AdvancedArray = require('../common/advanced-array');
+const DAWProjectEntry = require('../model/daw-project-entry');
+const StringUtils = require('../common/string-utils');
+const FileInfo = require('../model/file-info');
 const fs = require('fs');
 const path = require('path');
 

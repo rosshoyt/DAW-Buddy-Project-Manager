@@ -3,8 +3,8 @@ const Store = require('electron-store');
 const { app, ipcMain } = electron;
 const { shell } = require('electron');
 
-const DAWProjectSearcher = require('./DAWProjectSearcher');
-const WindowController = require('./WindowController');
+const DAWProjectSearcher = require('./daw-project-searcher');
+const WindowController = require('./window-controller');
 
 // Create in-memory database TODO persist data beyond single session    
 const store = new Store();
