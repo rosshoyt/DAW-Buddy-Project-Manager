@@ -11,6 +11,7 @@ class DAWProjectEntry {
         this.audioFiles = [];
         this.videoFiles = [];
         this.uncatFiles = []; // Uncategorized files
+        this.isFavorite = false;
     }
 }
 module.exports = DAWProjectEntry

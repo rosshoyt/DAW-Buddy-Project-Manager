@@ -15,7 +15,7 @@ let windowController;
 
 // Listen for app to be ready
 app.on('ready', function () {
-    windowController = new WindowController();
+    windowController = new WindowController(1920, 1080);
     windowController.createMainWindow();
 });
 

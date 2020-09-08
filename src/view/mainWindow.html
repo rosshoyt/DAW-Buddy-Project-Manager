@@ -5,6 +5,7 @@
   <title>DAW Buddy</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
   <link rel="stylesheet" href="./styles.css" type="text/css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
@@ -119,14 +120,16 @@
     </script>
   </div>
   <!--label id="projectslistlabel"></label-->
-  <div class="container">
-    <table id="projectsTable" class="striped">
+  <div class="container deep-blue lighten-3">
+    <h2>DAW Projects</h2>
+    <table id="projectsTable" class="highlight">
       <thead>
         <tr>
           <th onclick="sortTableAlphanumerically(0)">Project Name</th>
           <th onclick="sortTableByTimeCreated(1)">Date Created</th>
-          <th onclick="sortTableAlphanumerically(2)">DAW Type</th>
-          <th onclick="sortTableBySize(3)">Total Size</th>
+          <th onclick="sortTableAlphanumerically(2)">DAW</th>
+          <th onclick="sortTableBySize(3)">Size</th>
+          <th onclick="sortTableByFavorite(4)">Favorite</th>
           <!--th></th-->
         </tr>
       </thead>
@@ -156,9 +159,12 @@
     function sortTableBySize(colNum) {
       sortTable(colNum, "byteSize")
     }
+    function sortTableByFavorite(colNum) {
+      sortTable(colNum, "favorite");
+    }
 
     function sortTable(colNum, sortType) {
-      console.log('sorting table by ', sortType);
+      console.log('Sorting table by sort type: ', sortType);
       var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
 
       var xRow, yRow, xProject, yProject;
@@ -195,6 +201,9 @@
               xVal = xProject.dir.timeCreated;
               yVal = yProject.dir.timeCreated;
               break;
+            case "favorite":
+              xVal = xProject.isFavorite;
+              yVal = xProject.isFavorite;
             default:
               // lexographic, use contents of row's value in sort column 
               xVal = xRow.getElementsByTagName("TD")[colNum].innerHTML.toLowerCase();
@@ -204,7 +213,7 @@
           /*check if the two rows should switch place,
           based on the direction, asc or desc:*/
           if (dir == "asc") {
-            console.log('comparing ', xVal, ' and ', yVal);
+            //console.log('comparing ', xVal, ' and ', yVal);
             if (xVal > yVal) {
               //if so, mark as a switch and break the loop:
               shouldSwitch = true;
@@ -263,25 +272,70 @@
       var dawType = document.createTextNode(project.dawType);
       var sizeBytes = document.createTextNode(getReadableFileSizeString(project.totalBytes));
       //var numProjFiles = document.createTextNode(project.dawFiles.length);
+      var favoriteIcon = document.createTextNode(project.isFavorite ? "star" : "star_border");
+
+      // create an element to hold the 'favorite' star icon
+      var isFavorite = document.createElement("i"); //
+      isFavorite.classList.add("material-icons");
+      isFavorite.appendChild(favoriteIcon);
+      isFavorite.addEventListener('click', toggleFavorite);
+      //isFavorite.addEventListener('dblclick', function(){});
 
       // Insert a cell in the row at index 0
       var cell1 = newRow.insertCell(0);
       var cell2 = newRow.insertCell(1);
       var cell3 = newRow.insertCell(2);
       var cell4 = newRow.insertCell(3);
+      var cell5 = newRow.insertCell(4);
 
       cell1.appendChild(projectName);
       cell2.appendChild(dateCreated);
       cell3.appendChild(dawType);
       //cell3.appendChild(numProjFiles);
       cell4.appendChild(sizeBytes);
-
+      cell5.appendChild(isFavorite);
     }
 
-    function openRowDetailWindow(r) {
-      var id = r.target.parentNode.id;
-      console.log('Opening Row-Detail Window for project path ', id);//r.target.id);
-      ipcRenderer.send('getprojectdetail', id);
+    function openRowDetailWindow(e) {
+      var parNode = e.target.parentNode;
+      //console.log(parNode.nodeName);
+      // Don't open detail window if user clicked on 'favorite icon' 
+      if (parNode.nodeName === "TR") {
+        //while(parNode.nodeName !== "TR")
+        //  parNode = parNode.parentNode;
+        var id = parNode.id;
+        console.log('Opening Row-Detail Window for project path ', id);//r.target.id);
+        ipcRenderer.send('getprojectdetail', id);
+      }
+    }
+
+    function toggleFavorite(e) {
+
+      console.log('target:', e.target);
+      console.log('target parent:', e.target.parentNode);
+      console.log('target child:', e.target.firstChild);
+
+      var id = e.target.parentNode.parentNode.id;
+      //console.log('user clicked favorite button, id =', id);
+      // TODO don't use session storage, send message to IPC Main to get and update DB entry
+      var project = JSON.parse(sessionStorage.getItem(id));
+      //console.log(project);
+      project.isFavorite = project.isFavorite ? false : true;
+      //console.log(project.id, project.isFavorite);
+      //console.log('project is now', project.isFavorite ? 'favorited':'un-favorited');
+
+      
+      //e.target.firstChild.remove;
+      var textNode = document.createTextNode(project.isFavorite ? "star" : "star_border");
+      
+      console.log('removing target\'s child', e.target.firstChild);
+      e.target.removeChild(e.target.firstChild);
+
+      e.target.appendChild(textNode);
+      // TODO update database entry instead of/in addition to session storage
+      sessionStorage.setItem(id, JSON.stringify(project));
+      //e.target.parentNode.appendChild()
+      
     }
   </script>
 </body>

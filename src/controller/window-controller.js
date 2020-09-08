@@ -4,13 +4,18 @@ const path = require('path');
 const { BrowserWindow, Menu, app } = electron;
 
 class WindowController {
-    constructor() {
+    constructor(mainWindowWidth = 1024, mainWindowHeight = 768) {
         this.mainWindow;
         this.detailWindows = new Set();
+        this.mainWindowWidth = mainWindowWidth;
+        this.mainWindowHeight = mainWindowHeight;
     }
+
     createMainWindow() {
         // create new window
         this.mainWindow = new BrowserWindow({
+            width: this.mainWindowWidth,
+            height: this.mainWindowHeight,
             // TODO Implement secure solution https://stackoverflow.com/a/57049268
             // Solves Uncaught ReferenceError: 'require' is not defined
             webPreferences: {
@@ -18,8 +23,6 @@ class WindowController {
             }
         });
         // load html into window
-        //var pathname = path.join(__dirname, 'view/mainWindow.html');
-        //console.log('loading from path ', pathname)
         this.mainWindow.loadURL(url.format({
             pathname: path.join(__dirname, '../view/mainWindow.html'),
             protocol: 'file:',
@@ -30,7 +33,7 @@ class WindowController {
             app.quit();
         });
         // Set window size
-        this.mainWindow.setSize(1024, 768);
+        //this.mainWindow.setSize(this.mainWindowWidth, this.mainWindowHeight);
 
         // Build menu from template
         const mainMenu = Menu.buildFromTemplate(getMenuTemplate());
@@ -41,8 +44,8 @@ class WindowController {
     createDetailWindow(projectEntry) {
         // create new window with dimensions 3/4 size of main window
         let detailWindow = new BrowserWindow({
-            width: 768,
-            height: 576,
+            width: this.mainWindowWidth / 4 * 3,
+            height: this.mainWindowHeight / 4 * 3,
             title: projectEntry.projectName + ' - DAW Buddy',
             // TODO Implement secure solution https://stackoverflow.com/a/57049268
             // Solves Uncaught ReferenceError: 'require' is not defined
@@ -67,7 +70,10 @@ class WindowController {
         this.detailWindows.add(detailWindow);
     }
 }
+
 module.exports = WindowController
+
+
 
 const getMenuTemplate = function () {
     let mainMenuTemplate = [];
