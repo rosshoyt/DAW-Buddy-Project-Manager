@@ -7,7 +7,7 @@ const path = require('path');
 
 // Function that scans the directory and all sub directories to find DAW projects, 
 // and returns an AdvancedArray of projects found
-const searchForProjects = function(directories){
+const searchForProjects = function (directories) {
     const projectEntries = findDAWProjects(directories[0]);
     // Analyze each directory and extract database entries
     projectEntries.forEach((projectEntry, index) => {
@@ -22,7 +22,7 @@ const searchForProjects = function(directories){
 module.exports = { searchForProjects }
 
 // Method that recursively searches a provided directory path for all possible DAW Project Directories
-const findDAWProjects = function(dirPath, arrayOfProjectPaths) {
+const findDAWProjects = function (dirPath, arrayOfProjectPaths) {
     arrayOfProjectPaths = arrayOfProjectPaths || new AdvancedArray();
     var fileNames = fs.readdirSync(dirPath);
     fileNames.forEach(function (file) {
@@ -44,6 +44,33 @@ const findDAWProjects = function(dirPath, arrayOfProjectPaths) {
                 case '.cpr':
                     dawType = 'Cubase';
                     break;
+                case '.dpdoc':
+                    dawType = 'Digital Performer';
+                    break;
+                case '.dp3':
+                    dawType = 'Digital Performer';
+                    break;
+                case '.rpp':
+                    dawType = 'Reaper';
+                    break;
+                case '.rpprj':
+                    dawType = 'Reaper';
+                    break;
+                // TODO support logic projects - appears as directory on windows
+                // case '.logic': 
+                //     dawType = 'Logic';
+                //     break;
+                // case '.logicx':
+                //     dawType = 'Logic';
+                //     break;
+                //
+                // TODO support Garageband (.band, .gbproj)
+                //
+                // TODO Support Studio One, Reason, Bitwig Studio, and more 
+                //
+                // TODO Support audio-waveform editors (Audition, Sound Forge, Wavelab etc)
+                // case '.sesx' // Adobe Audition
+
                 default:
                     dawType = 'none';
             }
@@ -53,9 +80,9 @@ const findDAWProjects = function(dirPath, arrayOfProjectPaths) {
                 if (i == -1) {
                     // Extract name of project from the path
                     let projectName = StringUtils.removeAllPrecedingDirectories(dirPath);
-                    // Verify if this project is 'Backup (PT)' or 'Session File Backups' (PT)
+                    // Verify if this project is 'Backup (PT)' or 'Session File Backups' (PT) or 'Autosaves' (DP)
                     // TODO allow for users to scan projects in directories deliberately named this way (edge case)
-                    if (projectName !== "Backup" && projectName !== "Session File Backups") {
+                    if (projectName !== "Backup" && projectName !== "Session File Backups" && projectName !== "Autosaves") {
                         // Project hasn't been added, add to list!
                         let dawProject = new DAWProjectEntry(projectName);
                         // Set info about project's root directory
@@ -74,12 +101,13 @@ const findDAWProjects = function(dirPath, arrayOfProjectPaths) {
     return arrayOfProjectPaths;
 }
 
-const analyzeProjectDir = function(fileInfos, dawProjectEntry) {
+const analyzeProjectDir = function (fileInfos, dawProjectEntry) {
     fileInfos.forEach(function (fileInfo) {
         dawProjectEntry.totalBytes += fileInfo.byteSize;
         if (fileInfo.isDirectory) {
             analyzeProjectDir(fileInfo.files, dawProjectEntry);
         } else {
+            // TODO avoid code duplication by combining this stage with findDAWProjects()
             switch (fileInfo.extension) {
                 // daw files
                 case '.als':
@@ -88,12 +116,23 @@ const analyzeProjectDir = function(fileInfos, dawProjectEntry) {
                 case '.ptx':
                     dawProjectEntry.dawFiles.push(fileInfo);
                     break;
-                case '.logic':
+                case '.cpr':
                     dawProjectEntry.dawFiles.push(fileInfo);
                     break;
-                case '.als':
+                case '.dpdoc':
                     dawProjectEntry.dawFiles.push(fileInfo);
                     break;
+                case '.dp3':
+                    dawProjectEntry.dawFiles.push(fileInfo);
+                    break;
+                case '.rpp':
+                    dawProjectEntry.dawFiles.push(fileInfo);
+                    break;
+                case '.rpprj':
+                    dawProjectEntry.dawFiles.push(fileInfo);
+                    break;
+
+
 
                 // audio files
                 case '.wav':
@@ -126,7 +165,7 @@ const analyzeProjectDir = function(fileInfos, dawProjectEntry) {
     });
 }
 
-const scanDAWProjectFolder = function(dirPath) {
+const scanDAWProjectFolder = function (dirPath) {
     // create the file info list to be returned
     let fileInfos = [];
     // get the file names in the directory
