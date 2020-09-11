@@ -1,6 +1,33 @@
+
+body{
+    background-color: rgba(5, 0, 54, 0.808);
+}
+h2{
+    color: rgb(247, 239, 255);
+}
+/* table{
+    background-color: #eee;
+} */
+th{
+    font-size: x-large;
+    color: rgba(226, 223, 255, 0.808);
+}
+tr{
+    font-size: large;
+    color: rgba(226, 223, 255, 0.808);
+}
+/* .collection-item{
+    background-color: rgb(20, 20, 20);
+} */
+ul{
+    width: 90%;
+}
+label{
+    font-style: italic;
+}
 .container {
     margin: 0 auto;
-    max-width: px;
+    max-width: 1920px;
     width: 90%;
 }
 
@@ -9,9 +36,7 @@
         width: 90%;
     }
 }
-h2{
-    color: #24009c;
-}
+
 /*
 @media only screen and (min-width: 993px) {
     .container {

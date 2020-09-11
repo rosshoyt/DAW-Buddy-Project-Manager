@@ -14,18 +14,19 @@
       <a class="brand-logo right">DAW Buddy</a>
     </div>
   </nav>
-
-
-
-  <a class="waves-effect waves-light btn-large light-blue lighten-1" onclick="clickButton()">
-    <!--i class="material-icons left">home</i-->Add Search Folder</a>
+  <div class = "container">
+    <span class="br"></span>
+  <div>
+    <a class="waves-effect waves-light btn-large light-blue darken-1" onclick="clickButton()"><i class="material-icons">create_new_folder</i>  Add Search Folder</a>
+  </div>
+  <br>
+  <div>
+    <!--i class="material-icons left">home</i-->
+  <a class="waves-effect waves-light btn-large green accent-3 disabled" id="startscanbtn"
+    onclick="clickStart()"><i class="material-icons">play_circle_filled</i>  Start Scan</a>
+  </div>
   <script>
     const { ipcRenderer } = require('electron');
-
-    // function initSessionStorage(){
-    //   console.log('initializing session storage');
-    //   sessionStorage.projectsMap = new Map();
-    // }
 
     function clickButton() {
       const { dialog } = require('electron').remote;
@@ -39,10 +40,13 @@
 
         ul.className = 'collection';
         const li = document.createElement('li');
-        li.className = 'collection-item';
+        li.className = 'collection-item white-text color black';
         const itemText = document.createTextNode(result.filePaths);
         li.appendChild(itemText);
         ul.appendChild(li);
+        
+        
+        
         // get the label element
         var label = document.getElementById("folderslistlabel");
 
@@ -52,18 +56,14 @@
         var listLabelPositionClass = 'left';
         //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
         var startButton = document.querySelector("#startscanbtn");
-        // update text and position of info label, and enable/disable start button
+        // // update text and position of info label, and enable/disable start button
         if (x == 0) {
           label.innerText = 'Add a search folder to get started';
-          label.classList.remove('left');
-          label.classList.add('right');
           if (!startButton.classList.contains('disabled')) {
             startButton.classList.add('disabled');
           }
         } else {
           label.innerText = 'Folder(s) to Search:';
-          label.classList.remove('right');
-          label.classList.add('left');
           if (startButton.classList.contains('disabled')) {
             startButton.classList.remove('disabled');
 
@@ -71,14 +71,11 @@
         }
 
       }).catch(err => {
-        console.log(err);
+        // console.log(err);
       });
 
     }
-  </script>
-  <a class="waves-effect waves-light btn-large right green accent-3 disabled" id="startscanbtn"
-    onclick="clickStart()">Start Scan</a>
-  <script>
+
     function clickStart() {
       let folders = document.getElementById("folderslist").querySelectorAll('li');
       if (folders.length > 0) {
@@ -93,10 +90,11 @@
     }
   </script>
   <div>
-    <label id="folderslistlabel" class="right">
-      <--Add a search folder to get started</label>
+    <label id="folderslistlabel">
+      Add a search folder to get started</label>
   </div>
-  <div class="section">
+  <br>
+  <div>
     <!--a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a-->
     <ul id="folderslist"></ul>
     <script>
@@ -324,10 +322,10 @@
       //console.log(project.id, project.isFavorite);
       //console.log('project is now', project.isFavorite ? 'favorited':'un-favorited');
 
-      
+
       //e.target.firstChild.remove;
       var textNode = document.createTextNode(project.isFavorite ? "star" : "star_border");
-      
+
       console.log('removing target\'s child', e.target.firstChild);
       e.target.removeChild(e.target.firstChild);
 
@@ -335,7 +333,7 @@
       // TODO update database entry instead of/in addition to session storage
       sessionStorage.setItem(id, JSON.stringify(project));
       //e.target.parentNode.appendChild()
-      
+
     }
   </script>
 </body>
