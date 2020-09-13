@@ -22,6 +22,29 @@
   <br>
   <div>
     <!--i class="material-icons left">home</i-->
+  <div>
+    <!--a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a-->
+    <ul id="folderslist"></ul>
+    <script>
+      const ul = document.querySelector('ul');
+
+      // Clear items
+      ipcRenderer.on('item:clear', function () {
+        ul.innerHTML = '';
+        ul.className = '';
+      });
+
+      // Remove item
+      ul.addEventListener('dblclick', removeItem);
+
+      function removeItem(e) {
+        e.target.remove();
+        if (ul.children.length == 0) {
+          ul.className = '';
+        }
+      }
+    </script>
+  </div>
   <a class="waves-effect waves-light btn-large green accent-3 disabled" id="startscanbtn"
     onclick="clickStart()"><i class="material-icons">play_circle_filled</i>  Start Scan</a>
   </div>
@@ -93,33 +116,9 @@
     <label id="folderslistlabel">
       Add a search folder to get started</label>
   </div>
-  <br>
-  <div>
-    <!--a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a-->
-    <ul id="folderslist"></ul>
-    <script>
-      const ul = document.querySelector('ul');
-
-      // Clear items
-      ipcRenderer.on('item:clear', function () {
-        ul.innerHTML = '';
-        ul.className = '';
-      });
-
-      // Remove item
-      ul.addEventListener('dblclick', removeItem);
-
-      function removeItem(e) {
-        e.target.remove();
-        if (ul.children.length == 0) {
-          ul.className = '';
-        }
-      }
-    </script>
-  </div>
   <!--label id="projectslistlabel"></label-->
   <div class="container deep-blue lighten-3">
-    <h2>DAW Projects</h2>
+    <h2>Digital Audio Workstation Projects</h2>
     <table id="projectsTable" class="highlight">
       <thead>
         <tr>

@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+  <script src='styles.css'></script>
 </head>
 
 <body>
@@ -19,7 +20,8 @@
           <script>
             const { ipcRenderer } = require('electron');
             function openFolder() {
-              var fullPathOfProjFile = currentWindow.projectDetails.projectFiles[0].fullPath; //currentWindow.projectDetails.fullPath + "/" + currentWindow.projectDetails.projectFiles[0].fileName;
+              //console.log('in openfolder');
+              var fullPathOfProjFile = currentWindow.project.dir.fullPath; 
               console.log('Opening ', fullPathOfProjFile, ' in system explorer');
               ipcRenderer.send('openitem', fullPathOfProjFile);
             }
@@ -207,8 +209,8 @@
       // Set header text with project name  
       const electron = require('electron');
       var currentWindow = electron.remote.getCurrentWindow();
-      projectname.innerText = currentWindow.projectDetails.projectName;
-      //console.log('hello, project name = ', currentWindow.projectDetails.projectName);
+      projectname.innerText = currentWindow.project.projectName;
+      //console.log('hello, project name = ', currentWindow.project.projectName);
       var el = document.querySelector('.tabs');
       var instance = M.Tabs.init(el, {});
       fillPieChart();

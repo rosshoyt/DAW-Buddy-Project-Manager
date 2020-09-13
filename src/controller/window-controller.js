@@ -54,7 +54,7 @@ class WindowController {
             }
         });
         // send project details object to detail window
-        detailWindow.projectDetails = projectEntry;
+        detailWindow.project = projectEntry;
         // load html into window
         detailWindow.loadURL(url.format({
             pathname: path.join(__dirname, '../view/detailWindow.html'),
