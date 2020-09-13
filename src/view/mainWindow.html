@@ -3,338 +3,351 @@
 
 <head>
   <title>DAW Buddy</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <!--link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"-->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+    integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
   <link rel="stylesheet" href="./styles.css" type="text/css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
-  <nav>
-    <div class="nav-wrapper deep-purple">
-      <a class="brand-logo right">DAW Buddy</a>
+  <nav class="navbar navbar-light bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="material-icons">music_note</i>
+        DAW Buddy - The Music Project Manager
+      </a>
     </div>
   </nav>
-  <div class = "container">
-    <span class="br"></span>
-  <div>
-    <a class="waves-effect waves-light btn-large light-blue darken-1" onclick="clickButton()"><i class="material-icons">create_new_folder</i>  Add Search Folder</a>
-  </div>
-  <br>
-  <div>
-    <!--i class="material-icons left">home</i-->
-  <div>
-    <!--a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStart()">Start Scan</a-->
-    <ul id="folderslist"></ul>
+  <div class="container">
+    <br>
+    <button type="button" class="btn btn-info btn-lg" onclick="clickAddFolderButton()"><i
+      class="material-icons">create_new_folder</i> Add Search Folder</button>
+    <br>
+    <div>
+      <!--i class="material-icons left">home</i-->
+      <div>
+        <br>
+        <!--a class="waves-effect waves-light btn-large right disabled" id="startscanbtn" onclick="clickStartScan()">Start Scan</a-->
+        <ul class="list-group" id="folderslist"></ul>
+        <script>
+          const ul = document.querySelector('ul');
+
+          // Clear items
+          ipcRenderer.on('item:clear', function () {
+            ul.innerHTML = '';
+            ul.className = '';
+          });
+
+          // Remove item
+          ul.addEventListener('dblclick', removeItem);
+
+          function removeItem(e) {
+            e.target.remove();
+            if (ul.children.length == 0) {
+              ul.className = '';
+            }
+          }
+        </script>
+      </div>
+      <br>
+      <button type="button" class="btn btn-success btn-lg disabled" id="startscanbtn" onclick="clickStartScan()"><i
+        class="material-icons">play_circle_filled</i> Start Scan</button>
+      
+    </div>
     <script>
-      const ul = document.querySelector('ul');
+      const { ipcRenderer } = require('electron');
 
-      // Clear items
-      ipcRenderer.on('item:clear', function () {
-        ul.innerHTML = '';
-        ul.className = '';
-      });
+      function clickAddFolderButton() {
+        const { dialog } = require('electron').remote;
+        //const ul = document.getElementById("  folderslist"); 
+        const ul = document.querySelector('ul');
 
-      // Remove item
-      ul.addEventListener('dblclick', removeItem);
+        dialog.showOpenDialog({
+          properties: ['openDirectory']
+        }).then(result => {
+          //console.log(result.canceled);
+          //console.log(result.filePaths);
 
-      function removeItem(e) {
-        e.target.remove();
-        if (ul.children.length == 0) {
-          ul.className = '';
+          //ul.className = 'collection';
+          const li = document.createElement('li');
+          li.className = 'list-group-item';
+          const itemText = document.createTextNode(result.filePaths);
+          li.appendChild(itemText);
+          ul.appendChild(li);
+
+
+
+          // get the label element
+          var label = document.getElementById("folderslistlabel");
+
+          // Update UI based on number of list elements in directory list:
+          var x = document.getElementById("folderslist").childElementCount;
+          var listLabelText = '';
+          var listLabelPositionClass = 'left';
+          //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
+          var startButton = document.querySelector("#startscanbtn");
+          // // update text and position of info label, and enable/disable start button
+          if (x == 0) {
+            label.innerText = 'Add a search folder to get started';
+            if (!startButton.classList.contains('disabled')) {
+              startButton.classList.add('disabled');
+            }
+          } else {
+            label.innerText = 'Folder(s) to Search:';
+            if (startButton.classList.contains('disabled')) {
+              startButton.classList.remove('disabled');
+
+            }
+          }
+
+        }).catch(err => {
+          // console.log(err);
+        });
+
+      }
+
+      function clickStartScan() {
+        let folders = document.getElementById("folderslist").querySelectorAll('li');
+        if (folders.length > 0) {
+          var folderPaths = [];
+          // convert each collection item into a string path
+          folders.forEach((item, index) => {
+            folderPaths.push(item.innerText);
+          });
+          // send directory paths to main thread
+          ipcRenderer.send('startscan', folderPaths);
         }
       }
     </script>
-  </div>
-  <a class="waves-effect waves-light btn-large green accent-3 disabled" id="startscanbtn"
-    onclick="clickStart()"><i class="material-icons">play_circle_filled</i>  Start Scan</a>
-  </div>
-  <script>
-    const { ipcRenderer } = require('electron');
-
-    function clickButton() {
-      const { dialog } = require('electron').remote;
-      const ul = document.querySelector('ul');
-
-      dialog.showOpenDialog({
-        properties: ['openDirectory']
-      }).then(result => {
-        //console.log(result.canceled);
-        //console.log(result.filePaths);
-
-        ul.className = 'collection';
-        const li = document.createElement('li');
-        li.className = 'collection-item white-text color black';
-        const itemText = document.createTextNode(result.filePaths);
-        li.appendChild(itemText);
-        ul.appendChild(li);
-        
-        
-        
-        // get the label element
-        var label = document.getElementById("folderslistlabel");
-
-        // Update UI based on number of list elements in directory list:
-        var x = document.getElementById("folderslist").childElementCount;
-        var listLabelText = '';
-        var listLabelPositionClass = 'left';
-        //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
-        var startButton = document.querySelector("#startscanbtn");
-        // // update text and position of info label, and enable/disable start button
-        if (x == 0) {
-          label.innerText = 'Add a search folder to get started';
-          if (!startButton.classList.contains('disabled')) {
-            startButton.classList.add('disabled');
-          }
-        } else {
-          label.innerText = 'Folder(s) to Search:';
-          if (startButton.classList.contains('disabled')) {
-            startButton.classList.remove('disabled');
-
-          }
-        }
-
-      }).catch(err => {
-        // console.log(err);
-      });
-
-    }
-
-    function clickStart() {
-      let folders = document.getElementById("folderslist").querySelectorAll('li');
-      if (folders.length > 0) {
-        var folderPaths = [];
-        // convert each collection item into a string path
-        folders.forEach((item, index) => {
-          folderPaths.push(item.innerText);
-        });
-        // send directory paths to main thread
-        ipcRenderer.send('startscan', folderPaths);
-      }
-    }
-  </script>
-  <div>
-    <label id="folderslistlabel">
-      Add a search folder to get started</label>
-  </div>
-  <!--label id="projectslistlabel"></label-->
-  <div class="container deep-blue lighten-3">
-    <h2>Digital Audio Workstation Projects</h2>
-    <table id="projectsTable" class="highlight">
-      <thead>
-        <tr>
-          <th onclick="sortTableAlphanumerically(0)">Project Name</th>
-          <th onclick="sortTableByTimeCreated(1)">Date Created</th>
-          <th onclick="sortTableAlphanumerically(2)">DAW</th>
-          <th onclick="sortTableBySize(3)">Size</th>
-          <th onclick="sortTableByFavorite(4)">Favorite</th>
-          <!--th></th-->
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-  <script>
-    // fill table with single DAW project
-    ipcRenderer.on('scan:complete:singleentry', function (e, project) {
-      sessionStorage.setItem(project.dir.fullPath, JSON.stringify(project));
-      createRow(project);
-    });
-
-    ipcRenderer.on('scan:complete:allentries', function (e, projects) {
-      projects.forEach(function (project) {
+    <div>
+      <label id="folderslistlabel">
+        Add a search folder to get started</label>
+    </div>
+    <!--label id="projectslistlabel"></label-->
+    <div>
+      <br>
+      <h2>Digital Audio Workstation Projects:</h2>
+      <table id="projectsTable" class="table table-bordered table-dark">
+        <thead>
+          <tr>
+            <th scope="col" onclick="sortTableAlphanumerically(0)">Project Name</th>
+            <th scope="col" onclick="sortTableByTimeCreated(1)">Date Created</th>
+            <th scope="col" onclick="sortTableAlphanumerically(2)">DAW</th>
+            <th scope="col" onclick="sortTableBySize(3)">Size</th>
+            <th scope="col" onclick="sortTableByFavorite(4)">Favorite</th>
+            <!--th></th-->
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <script>
+      // fill table with single DAW project
+      ipcRenderer.on('scan:complete:singleentry', function (e, project) {
         sessionStorage.setItem(project.dir.fullPath, JSON.stringify(project));
         createRow(project);
       });
-    });
 
-    function sortTableAlphanumerically(colNum) {
-      sortTable(colNum, "alpha");
-    }
-    function sortTableByTimeCreated(colNum) {
-      sortTable(colNum, "timeCreated");
-    }
-    function sortTableBySize(colNum) {
-      sortTable(colNum, "byteSize")
-    }
-    function sortTableByFavorite(colNum) {
-      sortTable(colNum, "favorite");
-    }
+      ipcRenderer.on('scan:complete:allentries', function (e, projects) {
+        projects.forEach(function (project) {
+          sessionStorage.setItem(project.dir.fullPath, JSON.stringify(project));
+          createRow(project);
+        });
+      });
 
-    function sortTable(colNum, sortType) {
-      console.log('Sorting table by sort type: ', sortType);
-      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+      function sortTableAlphanumerically(colNum) {
+        sortTable(colNum, "alpha");
+      }
+      function sortTableByTimeCreated(colNum) {
+        sortTable(colNum, "timeCreated");
+      }
+      function sortTableBySize(colNum) {
+        sortTable(colNum, "byteSize")
+      }
+      function sortTableByFavorite(colNum) {
+        sortTable(colNum, "favorite");
+      }
 
-      var xRow, yRow, xProject, yProject;
+      function sortTable(colNum, sortType) {
+        console.log('Sorting table by sort type: ', sortType);
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
 
-      table = document.getElementById("projectsTable");
-      switching = true;
-      //Set the sorting direction to ascending:
-      dir = "asc";
-      /*Make a loop that will continue until
-      no switching has been done:*/
-      while (switching) {
-        //start by saying: no switching is done:
-        switching = false;
-        rows = table.rows;
-        /*Loop through all table rows (except the
-        first, which contains table headers):*/
-        for (i = 1; i < (rows.length - 1); i++) {
-          //start by saying there should be no switching:
-          shouldSwitch = false;
-          /*Get the two elements you want to compare,
-          one from current row and one from the next:*/
-          xRow = rows[i], yRow = rows[i + 1];
+        var xRow, yRow, xProject, yProject;
 
-          xProject = JSON.parse(sessionStorage.getItem(xRow.id)), yProject = JSON.parse(sessionStorage.getItem(yRow.id));
-          //console.log('Comparing projects ', xProject.projectName, yProject.projectName);
+        table = document.getElementById("projectsTable");
+        switching = true;
+        //Set the sorting direction to ascending:
+        dir = "asc";
+        /*Make a loop that will continue until
+        no switching has been done:*/
+        while (switching) {
+          //start by saying: no switching is done:
+          switching = false;
+          rows = table.rows;
+          /*Loop through all table rows (except the
+          first, which contains table headers):*/
+          for (i = 1; i < (rows.length - 1); i++) {
+            //start by saying there should be no switching:
+            shouldSwitch = false;
+            /*Get the two elements you want to compare,
+            one from current row and one from the next:*/
+            xRow = rows[i], yRow = rows[i + 1];
 
-          let xVal, yVal;
-          switch (sortType) {
-            case "byteSize":
-              xVal = xProject.totalBytes;
-              yVal = yProject.totalBytes;
-              break;
-            case "timeCreated":
-              xVal = xProject.dir.timeCreated;
-              yVal = yProject.dir.timeCreated;
-              break;
-            case "favorite":
-              xVal = xProject.isFavorite;
-              yVal = xProject.isFavorite;
-            default:
-              // lexographic, use contents of row's value in sort column 
-              xVal = xRow.getElementsByTagName("TD")[colNum].innerHTML.toLowerCase();
-              yVal = yRow.getElementsByTagName("TD")[colNum].innerHTML.toLowerCase();
-              break;
-          }
-          /*check if the two rows should switch place,
-          based on the direction, asc or desc:*/
-          if (dir == "asc") {
-            //console.log('comparing ', xVal, ' and ', yVal);
-            if (xVal > yVal) {
-              //if so, mark as a switch and break the loop:
-              shouldSwitch = true;
-              break;
+            xProject = JSON.parse(sessionStorage.getItem(xRow.id)), yProject = JSON.parse(sessionStorage.getItem(yRow.id));
+            //console.log('Comparing projects ', xProject.projectName, yProject.projectName);
+
+            let xVal, yVal;
+            switch (sortType) {
+              case "byteSize":
+                xVal = xProject.totalBytes;
+                yVal = yProject.totalBytes;
+                break;
+              case "timeCreated":
+                xVal = xProject.dir.timeCreated;
+                yVal = yProject.dir.timeCreated;
+                break;
+              case "favorite":
+                xVal = xProject.isFavorite;
+                yVal = xProject.isFavorite;
+              default:
+                // lexographic, use contents of row's value in sort column 
+                xVal = xRow.getElementsByTagName("TD")[colNum].innerHTML.toLowerCase();
+                yVal = yRow.getElementsByTagName("TD")[colNum].innerHTML.toLowerCase();
+                break;
             }
-          } else if (dir == "desc") {
-            if (xVal < yVal) {
-              //if so, mark as a switch and break the loop:
-              shouldSwitch = true;
-              break;
+            /*check if the two rows should switch place,
+            based on the direction, asc or desc:*/
+            if (dir == "asc") {
+              //console.log('comparing ', xVal, ' and ', yVal);
+              if (xVal > yVal) {
+                //if so, mark as a switch and break the loop:
+                shouldSwitch = true;
+                break;
+              }
+            } else if (dir == "desc") {
+              if (xVal < yVal) {
+                //if so, mark as a switch and break the loop:
+                shouldSwitch = true;
+                break;
+              }
             }
+            // break the for-loop if we need to switch row
           }
-          // break the for-loop if we need to switch row
-        }
-        if (shouldSwitch) {
-          /*If a switch has been marked, make the switch
-          and mark that a switch has been done:*/
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-          //Each time a switch is done, increase this count by 1:
-          switchcount++;
-        } else {
-          /*If no switching has been done AND the direction is "asc",
-          set the direction to "desc" and run the while loop again.*/
-          if (switchcount == 0 && dir == "asc") {
-            dir = "desc";
+          if (shouldSwitch) {
+            /*If a switch has been marked, make the switch
+            and mark that a switch has been done:*/
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
             switching = true;
+            //Each time a switch is done, increase this count by 1:
+            switchcount++;
+          } else {
+            /*If no switching has been done AND the direction is "asc",
+            set the direction to "desc" and run the while loop again.*/
+            if (switchcount == 0 && dir == "asc") {
+              dir = "desc";
+              switching = true;
+            }
           }
         }
       }
-    }
 
-    function getReadableFileSizeString(fileSizeInBytes) {
-      var i = -1;
-      var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
-      do {
-        fileSizeInBytes = fileSizeInBytes / 1024;
-        i++;
-      } while (fileSizeInBytes > 1024);
-      return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
-    };
+      function getReadableFileSizeString(fileSizeInBytes) {
+        var i = -1;
+        var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+        do {
+          fileSizeInBytes = fileSizeInBytes / 1024;
+          i++;
+        } while (fileSizeInBytes > 1024);
+        return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+      };
 
-    function createRow(project) {
-      // TODO pass tableRef into method?
-      var tableRef = document.getElementById('projectsTable').getElementsByTagName('tbody')[0];
+      function createRow(project) {
+        // TODO pass tableRef into method?
+        var tableRef = document.getElementById('projectsTable').getElementsByTagName('tbody')[0];
 
-      // Insert a row at the end of the table
-      var newRow = tableRef.insertRow(-1);
-      newRow.id = project.dir.fullPath;
-      //newRow.addEventListener('click', selectRow); // TODO
-      newRow.addEventListener('dblclick', openRowDetailWindow);
+        // Insert a row at the end of the table
+        var newRow = tableRef.insertRow(-1);
+        newRow.id = project.dir.fullPath;
+        //newRow.addEventListener('click', selectRow); // TODO
+        newRow.addEventListener('dblclick', openRowDetailWindow);
 
-      // Append a text node to the cell
-      var projectName = document.createTextNode(project.projectName);
-      var dateCreated = document.createTextNode(project.dir.timeCreated);
-      var dawType = document.createTextNode(project.dawType);
-      var sizeBytes = document.createTextNode(getReadableFileSizeString(project.totalBytes));
-      //var numProjFiles = document.createTextNode(project.dawFiles.length);
-      var favoriteIcon = document.createTextNode(project.isFavorite ? "star" : "star_border");
+        // Append a text node to the cell
+        var projectName = document.createTextNode(project.projectName);
+        var dateCreated = document.createTextNode(project.dir.timeCreated);
+        var dawType = document.createTextNode(project.dawType);
+        var sizeBytes = document.createTextNode(getReadableFileSizeString(project.totalBytes));
+        //var numProjFiles = document.createTextNode(project.dawFiles.length);
+        var favoriteIcon = document.createTextNode(project.isFavorite ? "star" : "star_border");
 
-      // create an element to hold the 'favorite' star icon
-      var isFavorite = document.createElement("i"); //
-      isFavorite.classList.add("material-icons");
-      isFavorite.appendChild(favoriteIcon);
-      isFavorite.addEventListener('click', toggleFavorite);
-      //isFavorite.addEventListener('dblclick', function(){});
+        // create an element to hold the 'favorite' star icon
+        var isFavorite = document.createElement("i"); //
+        isFavorite.classList.add("material-icons");
+        isFavorite.appendChild(favoriteIcon);
+        isFavorite.addEventListener('click', toggleFavorite);
+        //isFavorite.addEventListener('dblclick', function(){});
 
-      // Insert a cell in the row at index 0
-      var cell1 = newRow.insertCell(0);
-      var cell2 = newRow.insertCell(1);
-      var cell3 = newRow.insertCell(2);
-      var cell4 = newRow.insertCell(3);
-      var cell5 = newRow.insertCell(4);
+        // Insert a cell in the row at index 0
+        var cell1 = newRow.insertCell(0);
+        var cell2 = newRow.insertCell(1);
+        var cell3 = newRow.insertCell(2);
+        var cell4 = newRow.insertCell(3);
+        var cell5 = newRow.insertCell(4);
 
-      cell1.appendChild(projectName);
-      cell2.appendChild(dateCreated);
-      cell3.appendChild(dawType);
-      //cell3.appendChild(numProjFiles);
-      cell4.appendChild(sizeBytes);
-      cell5.appendChild(isFavorite);
-    }
-
-    function openRowDetailWindow(e) {
-      var parNode = e.target.parentNode;
-      //console.log(parNode.nodeName);
-      // Don't open detail window if user clicked on 'favorite icon' 
-      if (parNode.nodeName === "TR") {
-        //while(parNode.nodeName !== "TR")
-        //  parNode = parNode.parentNode;
-        var id = parNode.id;
-        console.log('Opening Row-Detail Window for project path ', id);//r.target.id);
-        ipcRenderer.send('getprojectdetail', id);
+        cell1.appendChild(projectName);
+        cell2.appendChild(dateCreated);
+        cell3.appendChild(dawType);
+        //cell3.appendChild(numProjFiles);
+        cell4.appendChild(sizeBytes);
+        cell5.appendChild(isFavorite);
       }
-    }
 
-    function toggleFavorite(e) {
+      function openRowDetailWindow(e) {
+        var parNode = e.target.parentNode;
+        //console.log(parNode.nodeName);
+        // Don't open detail window if user clicked on 'favorite icon' 
+        if (parNode.nodeName === "TR") {
+          //while(parNode.nodeName !== "TR")
+          //  parNode = parNode.parentNode;
+          var id = parNode.id;
+          console.log('Opening Row-Detail Window for project path ', id);//r.target.id);
+          ipcRenderer.send('getprojectdetail', id);
+        }
+      }
 
-      console.log('target:', e.target);
-      console.log('target parent:', e.target.parentNode);
-      console.log('target child:', e.target.firstChild);
+      function toggleFavorite(e) {
 
-      var id = e.target.parentNode.parentNode.id;
-      //console.log('user clicked favorite button, id =', id);
-      // TODO don't use session storage, send message to IPC Main to get and update DB entry
-      var project = JSON.parse(sessionStorage.getItem(id));
-      //console.log(project);
-      project.isFavorite = project.isFavorite ? false : true;
-      //console.log(project.id, project.isFavorite);
-      //console.log('project is now', project.isFavorite ? 'favorited':'un-favorited');
+        console.log('target:', e.target);
+        console.log('target parent:', e.target.parentNode);
+        console.log('target child:', e.target.firstChild);
+
+        var id = e.target.parentNode.parentNode.id;
+        //console.log('user clicked favorite button, id =', id);
+        // TODO don't use session storage, send message to IPC Main to get and update DB entry
+        var project = JSON.parse(sessionStorage.getItem(id));
+        //console.log(project);
+        project.isFavorite = project.isFavorite ? false : true;
+        //console.log(project.id, project.isFavorite);
+        //console.log('project is now', project.isFavorite ? 'favorited':'un-favorited');
 
 
-      //e.target.firstChild.remove;
-      var textNode = document.createTextNode(project.isFavorite ? "star" : "star_border");
+        //e.target.firstChild.remove;
+        var textNode = document.createTextNode(project.isFavorite ? "star" : "star_border");
 
-      console.log('removing target\'s child', e.target.firstChild);
-      e.target.removeChild(e.target.firstChild);
+        console.log('removing target\'s child', e.target.firstChild);
+        e.target.removeChild(e.target.firstChild);
 
-      e.target.appendChild(textNode);
-      // TODO update database entry instead of/in addition to session storage
-      sessionStorage.setItem(id, JSON.stringify(project));
-      //e.target.parentNode.appendChild()
+        e.target.appendChild(textNode);
+        // TODO update database entry instead of/in addition to session storage
+        sessionStorage.setItem(id, JSON.stringify(project));
+        //e.target.parentNode.appendChild()
 
-    }
-  </script>
+      }
+    </script>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+  integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"
+  integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
 
 </html>
