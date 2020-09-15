@@ -8,6 +8,8 @@
     integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
   <link rel="stylesheet" href="./styles.css" type="text/css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.css">
 </head>
 
 <body>
@@ -20,7 +22,7 @@
     </div>
   </nav>
   <div class="container">
-    <br>
+    <br>  
     <button type="button" class="btn btn-info btn-lg" onclick="clickAddFolderButton()"><i
       class="material-icons">create_new_folder</i> Add Search Folder</button>
     <br>
@@ -76,42 +78,46 @@
           li.appendChild(itemText);
           ul.appendChild(li);
 
-
-
           // get the label element
           var label = document.getElementById("folderslistlabel");
-
-          // Update UI based on number of list elements in directory list:
-          var x = document.getElementById("folderslist").childElementCount;
+          
           var listLabelText = '';
           var listLabelPositionClass = 'left';
           //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
           var startButton = document.querySelector("#startscanbtn");
           // // update text and position of info label, and enable/disable start button
-          if (x == 0) {
+          // Update UI based on number of list elements in directory list:
+          var listLength = document.getElementById("folderslist").childElementCount;
+          
+          // if (listLength == 0) {
+          //   label.innerText = 'Add a search folder to get started';
+          //   if (!startButton.classList.contains('disabled')) {
+          //     startButton.classList.add('disabled');
+          //   }
+          //} else {
+          // TODO fix control flow here
+          if(listLength !== 0){  
+            label.innerText = '';  //parentNode.removeChild(label);
+            if (startButton.classList.contains('disabled')) {
+              startButton.classList.remove('disabled');
+            }
+          } else{
             label.innerText = 'Add a search folder to get started';
+            // reset the label as there are no folders listed
             if (!startButton.classList.contains('disabled')) {
               startButton.classList.add('disabled');
             }
-          } else {
-            label.innerText = 'Folder(s) to Search:';
-            if (startButton.classList.contains('disabled')) {
-              startButton.classList.remove('disabled');
-
-            }
           }
-
         }).catch(err => {
           // console.log(err);
         });
-
       }
 
       function clickStartScan() {
         let folders = document.getElementById("folderslist").querySelectorAll('li');
         if (folders.length > 0) {
           var folderPaths = [];
-          // convert each collection item into a string path
+          // convert each collection item into a  string path
           folders.forEach((item, index) => {
             folderPaths.push(item.innerText);
           });
@@ -129,6 +135,7 @@
       <br>
       <h2>Digital Audio Workstation Projects:</h2>
       <table id="projectsTable" class="table table-bordered table-dark">
+      <!--table data-toggle="table" id="projectsTable"></table-->
         <thead>
           <tr>
             <th scope="col" onclick="sortTableAlphanumerically(0)">Project Name</th>
