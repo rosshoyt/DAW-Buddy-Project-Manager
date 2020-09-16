@@ -2,189 +2,138 @@
 <html lang="en">
 
 <head>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+    integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
   <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+  
   <script src='styles.css'></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"
+    integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/"
+    crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <script src='table-utils.js'></script>
+  <script src='./../common/string-utils.js'></script>
 </head>
 
 <body>
-  <div id="container">
-    <nav class="nav-extended">
-      <div class="nav-wrapper deep-purple">
-        <a id="projectname" class="brand-logo left"></a>
-        <ul id="nav-mobile" class="right">
-          <li><a href="#" onclick="openFolder();event.preventDefault();"><i
-                class="material-icons right">folder_open</i>Open Folder</a></li>
-          <script>
-            const { ipcRenderer } = require('electron');
-            function openFolder() {
-              //console.log('in openfolder');
-              var fullPathOfProjFile = currentWindow.project.dir.fullPath; 
-              console.log('Opening ', fullPathOfProjFile, ' in system explorer');
-              ipcRenderer.send('openitem', fullPathOfProjFile);
-            }
-          </script>
-        </ul>
-      </div>
-      <div class="nav-content deep-purple">
-        <ul class="tabs tabs-transparent">
-          <li class="tab"><a class="active" href="#tab1">Project Files</a></li>
-          <li class="tab"><a href="#tab2">Data Insights</a></li>
-          <li class="tab"><a href="#tab3">Project Timeline</a></li>
-        </ul>
-      </div>
-    </nav>
+  <nav class="navbar navbar-light bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" id="projectname">
+        <!--i class="material-icons">music_note</i-->
+      </a>
+      <button class="btn btn-success my-2 my-sm-0" onclick="openFolder();event.preventDefault();"><i
+          class="material-icons right">folder_open</i> Open In Folder</a>
+        <script>
+          const { ipcRenderer } = require('electron');
+          function openFolder() {
+            //console.log('in openfolder');
+            var fullPathOfProjFile = currentWindow.project.dir.fullPath;
+            console.log('Opening ', fullPathOfProjFile, ' in system explorer');
+            ipcRenderer.send('openitem', fullPathOfProjFile);
+          }
+        </script>
+    </div>
+  </nav>
+  <br>
+  <div class="container">
+    <h2>Audio Files:</h2>
+    <table id="audioFilesTable" class="table table-bordered table-dark">
+      <!--table data-toggle="table" id="projectsTable"></table-->
+      <thead>
+        <tr>
+          <th scope="col" onclick="sortTableAlphanumerically(0)">File Name</th>
+          <th scope="col" onclick="sortTableByTimeCreated(1)">Date Created</th>
+          <th scope="col" onclick="sortTableAlphanumerically(2)">Extension</th>
+          <th scope="col" onclick="sortTableBySize(3)">Size</th>
+          <th scope="col" onclick="sortTableByFavorite(4)">Favorite</th>
+          <!--th></th-->
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <script>
+      // TODO refactor util methods to shared JS file
+      function getReadableFileSizeString(fileSizeInBytes) {
+        var i = -1;
+        var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+        do {
+          fileSizeInBytes = fileSizeInBytes / 1024;
+          i++;
+        } while (fileSizeInBytes > 1024);
+        return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+      };
+      
+      function fillAudioFilesTable() {
+        let audioFiles = currentWindow.project.audioFiles;
+        console.log(audioFiles.length, 'audio files');
+        audioFiles.forEach(file => {
+          createRow(file, 'audioFilesTable');
+        });
+      }
+     
+      function toggleFavorite(e) {
+
+        console.log('target:', e.target);
+        console.log('target parent:', e.target.parentNode);
+        console.log('target child:', e.target.firstChild);
+
+        var id = e.target.parentNode.parentNode.id;
+        //console.log('user clicked favorite button, id =', id);
+        // TODO don't use session storage, send message to IPC Main to get and update DB entry
+        var project = JSON.parse(sessionStorage.getItem(id));
+        //console.log(project);
+        project.isFavorite = project.isFavorite ? false : true;
+        //console.log(project.id, project.isFavorite);
+        //console.log('project is now', project.isFavorite ? 'favorited':'un-favorited');
+
+
+        //e.target.firstChild.remove;
+        var textNode = document.createTextNode(project.isFavorite ? "star" : "star_border");
+
+        console.log('removing target\'s child', e.target.firstChild);
+        e.target.removeChild(e.target.firstChild);
+
+        e.target.appendChild(textNode);
+        // TODO update database entry instead of/in addition to session storage
+        sessionStorage.setItem(id, JSON.stringify(project));
+        //e.target.parentNode.appendChild()
+
+      }
+      function sortTableAlphanumerically(colNum) {
+        sortTable(colNum, "alpha");
+      }
+      function sortTableByTimeCreated(colNum) {
+        sortTable(colNum, "timeCreated");
+      }
+      function sortTableBySize(colNum) {
+        sortTable(colNum, "byteSize")
+      }
+      function sortTableByFavorite(colNum) {
+        sortTable(colNum, "favorite");
+      }
+
+
+    </script>
     <br>
 
-    <div id="tab1" class="container">
-      <ul class="collapsible" data-collapsible="accordion">
-        <li>
-          <div class="collapsible-header">
-            <i class="material-icons">filter_drama</i>First</div>
-          <div class="collapsible-body">
-            <div class="row">
-              <div class="col s12 m12">
-                <ul class="collapsible" data-collapsible="accordion">
-                  <li>
-                    <div class="collapsible-header">
-                      <i class="material-icons">filter_drama</i>Nested First</div>
-                    <div class="collapsible-body">
-                      <p>Lorem ipsum dolor sit amet.</p>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="collapsible-header">
-                      <i class="material-icons">place</i>Nested Second</div>
-                    <div class="collapsible-body">
-                      <p>Lorem ipsum dolor sit amet.</p>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="collapsible-header">
-                      <i class="material-icons">whatshot</i>Nested Third</div>
-                    <div class="collapsible-body">
-                      <p>Lorem ipsum dolor sit amet.</p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="collapsible-header">
-            <i class="material-icons">place</i>Second</div>
-          <div class="collapsible-body">
-            <div class="container">
-              <ul class="collapsible" data-collapsible="accordion">
-                <li>
-                  <div class="collapsible-header">
-                    <i class="material-icons">filter_drama</i>Nested First</div>
-                  <div class="collapsible-body">
-                    <p>Lorem ipsum dolor sit amet.</p>
-                  </div>
-                </li>
-                <li>
-                  <div class="collapsible-header">
-                    <i class="material-icons">place</i>Nested Second</div>
-                  <div class="collapsible-body">
-                    <p>Lorem ipsum dolor sit amet.</p>
-                  </div>
-                </li>
-                <li>
-                  <div class="collapsible-header">
-                    <i class="material-icons">whatshot</i>Nested Third</div>
-                  <div class="collapsible-body">
-                    <p>Lorem ipsum dolor sit amet.</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="collapsible-header">
-            <i class="material-icons">whatshot</i>Third</div>
-          <div class="collapsible-body">
-            <div class="container">
-              <div class="row">
-                <div class="col s12 m12">
-                  <ul class="collapsible" data-collapsible="accordion">
-                    <li>
-                      <div class="collapsible-header">
-                        <i class="material-icons">filter_drama</i>Nested First</div>
-                      <div class="collapsible-body">
-                        <p>Lorem ipsum dolor sit amet.</p>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="collapsible-header">
-                        <i class="material-icons">place</i>Nested Second</div>
-                      <div class="collapsible-body">
-                        <p>Lorem ipsum dolor sit amet.</p>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="collapsible-header">
-                        <i class="material-icons">whatshot</i>Nested Third</div>
-                      <div class="collapsible-body">
-                        <p>Lorem ipsum dolor sit amet.</p>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="collapsible-header">
-            <i class="material-icons">filter_drama</i>Fourth</div>
-          <div class="collapsible-body">
-            <div style="padding:25px">
-              <ul class="collapsible" data-collapsible="accordion">
-                <li>
-                  <div class="collapsible-header">
-                    <i class="material-icons">filter_drama</i>Nested First</div>
-                  <div class="collapsible-body">
-                    <p>Lorem ipsum dolor sit amet.</p>
-                  </div>
-                </li>
-                <li>
-                  <div class="collapsible-header">
-                    <i class="material-icons">place</i>Nested Second</div>
-                  <div class="collapsible-body">
-                    <p>Lorem ipsum dolor sit amet.</p>
-                  </div>
-                </li>
-                <li>
-                  <div class="collapsible-header">
-                    <i class="material-icons">whatshot</i>Nested Third</div>
-                  <div class="collapsible-body">
-                    <p>Lorem ipsum dolor sit amet.</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <div id="tab2" class="container">
-      <div id="pieChartFileSizes">
-
-      </div>
+    <h2>Project Data Insights:</h2>
+    <br>
+    <div id="fileSizeChart">
       <script>
         const fillPieChart = function () {
+
+
           var color = ['rgb(56, 75, 126)', 'rgb(18, 36, 37)', 'rgb(34, 53, 101)'];
           var data = [{
             values: [55, 26, 5],
             labels: ['Audio Files', 'Video Files', 'Project Files'],
             //colors: ['Green', 'Blue', 'Red'],
             type: 'pie',
-            name: 'Files By Size',
+            //name: 'Files By Size',
             marker: {
               colors: color
             }
@@ -192,30 +141,31 @@
 
 
           var layout = {
-            title: 'Files By Size',
+            title: 'Files By Size (GB)',
             height: 400,
-            width: 500
+            width: 400
           };
 
-          Plotly.newPlot('pieChartFileSizes', data, layout, {displaylogo: false});
-          //Plotly.newPlot("")
+          Plotly.newPlot('fileSizeChart', data, layout, { displaylogo: false });
+
         }
       </script>
     </div>
-    <div id="tab3">
-      Tab #3 in da house!
-    </div>
-    <script>
-      // Set header text with project name  
-      const electron = require('electron');
-      var currentWindow = electron.remote.getCurrentWindow();
-      projectname.innerText = currentWindow.project.projectName;
-      //console.log('hello, project name = ', currentWindow.project.projectName);
-      var el = document.querySelector('.tabs');
-      var instance = M.Tabs.init(el, {});
-      fillPieChart();
-    </script>
   </div>
+
+  <script>
+    // Set header text with project name  
+    const electron = require('electron');
+    var currentWindow = electron.remote.getCurrentWindow();
+    projectname.innerText = currentWindow.project.projectName;
+
+    fillAudioFilesTable();
+    fillPieChart();
+
+  </script>
+  </div>
+  
 </body>
+
 
 </html>
