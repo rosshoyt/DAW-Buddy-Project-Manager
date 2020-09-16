@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
     integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
   <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+  
   <script src='styles.css'></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
     integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
@@ -12,8 +14,11 @@
     integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/"
     crossorigin="anonymous"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <script src='table-utils.js'></script>
   <script src='./../common/string-utils.js'></script>
 </head>
+
 <body>
   <nav class="navbar navbar-light bg-primary">
     <div class="container-fluid">
@@ -61,52 +66,15 @@
         } while (fileSizeInBytes > 1024);
         return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
       };
+      
       function fillAudioFilesTable() {
         let audioFiles = currentWindow.project.audioFiles;
         console.log(audioFiles.length, 'audio files');
         audioFiles.forEach(file => {
-          createRow(file);
+          createRow(file, 'audioFilesTable');
         });
       }
-      // TODO refactor shared Table methods between detailWindow and mainWindow
-      function createRow(audioFile) {
-        var tableRef = document.getElementById('audioFilesTable').getElementsByTagName('tbody')[0];
-
-        // Insert a row at the end of the table
-        var newRow = tableRef.insertRow(-1);
-        newRow.id = audioFile.fullPath;
-
-
-        // Append a text node to the cell
-        var audioFileName = document.createTextNode(audioFile.fileName);
-        var dateCreated = document.createTextNode(audioFile.timeCreated);
-        var fileType = document.createTextNode(audioFile.extension);
-        var sizeBytes = document.createTextNode(getReadableFileSizeString(audioFile.byteSize));
-        //var numProjFiles = document.createTextNode(project.dawFiles.length);
-        var favoriteIcon = document.createTextNode(audioFile.isFavorite ? "star" : "star_border");
-
-        // create an element to hold the 'favorite' star icon
-        var isFavorite = document.createElement("i"); //
-        isFavorite.classList.add("material-icons");
-        isFavorite.appendChild(favoriteIcon);
-        isFavorite.addEventListener('click', toggleFavorite);
-        //isFavorite.addEventListener('dblclick', function(){});
-
-        // Insert a cell in the row at index 0
-        var cell1 = newRow.insertCell(0);
-        var cell2 = newRow.insertCell(1);
-        var cell3 = newRow.insertCell(2);
-        var cell4 = newRow.insertCell(3);
-        var cell5 = newRow.insertCell(4);
-
-        cell1.appendChild(audioFileName);
-        cell2.appendChild(dateCreated);
-        cell3.appendChild(fileType);
-        //cell3.appendChild(numProjFiles);
-        cell4.appendChild(sizeBytes);
-        cell5.appendChild(isFavorite);
-
-      }
+     
       function toggleFavorite(e) {
 
         console.log('target:', e.target);
@@ -148,7 +116,7 @@
         sortTable(colNum, "favorite");
       }
 
-      
+
     </script>
     <br>
 
@@ -196,6 +164,7 @@
 
   </script>
   </div>
+  
 </body>
 
 
