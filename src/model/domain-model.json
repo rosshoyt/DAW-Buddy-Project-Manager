@@ -1,0 +1,50 @@
+{
+    "daw-types": {
+        "Ableton Live": {
+            "extensions" : [
+                ".als"
+            ],
+            "company":  { 
+                "name" : "Ableton AG",
+                "website" : "https://www.ableton.com"
+            }
+        },
+        "ProTools": {
+            "extensions" : [
+                ".ptx"
+            ],
+            "company":  { 
+                "name" : "Avid Audio",
+                "website" : "https://www.avid.com/pro-tools"
+            }
+        },
+        "Cubase": {
+            "extensions" : [
+                ".cpr"
+            ],
+            "company" : { 
+                "name" : "Steinberg",
+                "website" : "https://www.steinberg.net/"
+            }
+        } ,
+        "Digital Performer" : {
+            "extensions" : [
+                ".dpdoc", ".dp3"
+            ],
+            "company" : { 
+                "name" : "Mark Of The Unicorn",
+                "website" : "https://motu.com/en-us/products/software/dp/"
+            }
+        },
+        "Reaper" : {
+            "extensions" : [
+                ".rpprj", ".rpp"
+            ],
+            "company" : {
+                "name" : "Cockos",
+                "website" : "https://www."
+            }
+
+        }
+    }
+}
