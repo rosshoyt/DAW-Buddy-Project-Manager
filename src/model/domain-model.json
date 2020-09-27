@@ -42,9 +42,50 @@
             ],
             "company" : {
                 "name" : "Cockos",
-                "website" : "https://www."
+                "website" : "https://www.reaper.fm/"
             }
 
         }
+    },
+    "file-types" : {
+        "audio" : [
+            ".wav",
+            ".rf64",
+            ".pcm",
+            ".flac",
+
+            ".aiff",
+            ".au",
+            ".m4a",
+            
+            ".mp3",
+            ".ogg"
+        ],
+        "video" :[
+            ".gif",
+            ".gifv",
+            ".avi",
+            ".m4v",
+
+            ".mpg",
+            ".mp2",
+            ".mpeg",
+            ".mpe",
+            ".mpv",
+            ".m2v",
+            ".mp4",
+            ".m4p",
+            ".m4v",
+
+            ".mkv",
+
+            ".ogv",
+
+            ".mov",
+            ".qt",
+
+            ".webm",
+            ".wmv"
+        ]
     }
 }
