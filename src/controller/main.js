@@ -3,11 +3,12 @@ const Store = require('electron-store');
 const { app, ipcMain } = electron;
 const { shell } = require('electron');
 
-const DAWProjectSearcher = require('./daw-project-searcher');
+const DAWProjectSearcher = require('./daw-project-searcher').DAWProjectSearcher;
 const WindowController = require('./window-controller');
 
 // Create in-memory database TODO persist data beyond single session    
 const store = new Store();
+let dawProjectSearcher = new DAWProjectSearcher();
 let windowController;
 
 // SET ENV
@@ -48,8 +49,9 @@ ipcMain.on('openitem', function (e, fullPath) {
 // Perform the directory scan on array of directory paths to be searched
 // TODO Scan more than just the first (index=0) directory passed in
 ipcMain.on('startscan', function (e, directories) {
-    let projects = DAWProjectSearcher.searchForProjects(directories);
+    let projects = dawProjectSearcher.searchForProjects(directories);
     projects.forEach(project => {
+        //console.log(project);
         store.set(project.dir.fullPath, project);
     });
      // TODO Refactor - create methods to send web content without interacting with window objects
