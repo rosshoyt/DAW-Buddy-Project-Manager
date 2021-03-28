@@ -66,11 +66,14 @@
         const ul = document.querySelector('ul');
 
         dialog.showOpenDialog({
-          properties: ['openDirectory']
+          properties: ['openDirectory'] // TODO add prop 'treatPackageAsDirectory' for macOS 
+          // TODO add message: "Select a folder to search" for macOS  
         }).then(result => {
-          //console.log(result.canceled);
-          //console.log(result.filePaths);
-
+          // check if user cancelled the folder selection 
+          if(result.canceled){
+            return;
+          }
+          
           //ul.className = 'collection';
           const li = document.createElement('li');
           li.className = 'list-group-item';
