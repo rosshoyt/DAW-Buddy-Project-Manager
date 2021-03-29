@@ -5,10 +5,10 @@ const { shell } = require('electron');
 
 const DAWProjectSearcher = require('./daw-project-searcher').DAWProjectSearcher;
 const WindowController = require('./window-controller');
+const DatabaseController = require('./database-controller');
 
-// Create in-memory database TODO persist data beyond single session    
-const store = new Store();
 let dawProjectSearcher = new DAWProjectSearcher();
+let databaseController = new DatabaseController();
 let windowController;
 
 // SET ENV
@@ -23,7 +23,7 @@ app.on('ready', function () {
 // Catch getprojectdetail 
 // Called when user wants to view a project's details in a detail window
 ipcMain.on('getprojectdetail', function (e, projectPath) {
-    windowController.createDetailWindow(store.get(projectPath));
+    windowController.createDetailWindow(databaseController.readProject(projectPath));
 });
 
 // Catch openitem 
@@ -52,7 +52,7 @@ ipcMain.on('startscan', function (e, directories) {
     let projects = dawProjectSearcher.searchForProjects(directories);
     projects.forEach(project => {
         //console.log(project);
-        store.set(project.dir.fullPath, project);
+        databaseController.createProject(project.dir.fullPath, project);
     });
      // TODO Refactor - create methods to send web content without interacting with window objects
     windowController.mainWindow.webContents.send('scan:complete:allentries', projects);
