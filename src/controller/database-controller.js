@@ -1,13 +1,11 @@
-const electron = require('electron');
 const Store = require('electron-store');
-const { app, ipcMain } = electron;
-const { shell } = require('electron');
 
-class DatabaseController {
+module.exports = class DatabaseController {
     constructor(){
         this.store = new Store();
-    }
+        //console.log(app.getPath('userData'))
 
+    }
     readProject(projectID){
         return this.store.get(projectID);
     }
@@ -16,6 +14,3 @@ class DatabaseController {
         this.store.set(projectID, project);
     }
 }
-
-module.exports = { DatabaseController }
-
