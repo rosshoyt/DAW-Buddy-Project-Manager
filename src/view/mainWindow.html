@@ -11,12 +11,14 @@
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
   <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.css">
   <script>
-    const { ipcRenderer } = require('electron');
-  document.addEventListener('DOMContentLoaded', function() {
-    ipcRenderer.send('readusersearchpaths');
-  });
+      const { ipcRenderer } = require('electron');
+        document.addEventListener('DOMContentLoaded', function() {
+        ipcRenderer.send('readusersearchpaths');
+      });
   
-  ipcRenderer.on('updateusersearchpaths', function (e, paths) {
+      ipcRenderer.on('updateusersearchpaths', function (e, paths) {
+        console.log("here in the updateusersearchpaths");
+        clearUserSearchPathsTable();
         paths.forEach(function (path) {
           //sessionStorage.setItem(project.dir.fullPath, JSON.stringify(project));
           console.log("Adding path to table " + path);
