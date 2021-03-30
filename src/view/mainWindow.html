@@ -10,6 +10,21 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
   <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.css">
+  <script>
+    const { ipcRenderer } = require('electron');
+  document.addEventListener('DOMContentLoaded', function() {
+    ipcRenderer.send('readusersearchpaths');
+  });
+  
+  ipcRenderer.on('updateusersearchpaths', function (e, paths) {
+        paths.forEach(function (path) {
+          //sessionStorage.setItem(project.dir.fullPath, JSON.stringify(project));
+          console.log("Adding path to table " + path);
+          createRow_UserSearchPathsTable(path);
+        });
+      });
+
+  </script>
 </head>
 
 <body>
@@ -58,8 +73,6 @@
       
     </div>
     <script>
-      const { ipcRenderer } = require('electron');
-
       function clickAddFolderButton() {
         const { dialog } = require('electron').remote;
         //const ul = document.getElementById("  folderslist"); 
@@ -73,11 +86,57 @@
           if(result.canceled){
             return;
           }
+          ipcRenderer.send('createupdateusersearchpaths', result.filePaths);
           
+        //   //ul.className = 'collection';
+        //   const li = document.createElement('li');
+        //   li.className = 'list-group-item';
+        //   const itemText = document.createTextNode(result.filePaths);
+        //   li.appendChild(itemText);
+        //   ul.appendChild(li);
+
+        //   // get the label element
+        //   var label = document.getElementById("folderslistlabel");
+          
+        //   var listLabelText = '';
+        //   var listLabelPositionClass = 'left';
+        //   //var toggleStartButtonDisabled = false; // TODO refactor startButton toggling code
+        //   var startButton = document.querySelector("#startscanbtn");
+        //   // // update text and position of info label, and enable/disable start button
+        //   // Update UI based on number of list elements in directory list:
+        //   var listLength = document.getElementById("folderslist").childElementCount;
+          
+        //   // if (listLength == 0) {
+        //   //   label.innerText = 'Add a search folder to get started';
+        //   //   if (!startButton.classList.contains('disabled')) {
+        //   //     startButton.classList.add('disabled');
+        //   //   }
+        //   //} else {
+        //   // TODO fix control flow here
+        //   if(listLength !== 0){  
+        //     label.innerText = '';  //parentNode.removeChild(label);
+        //     if (startButton.classList.contains('disabled')) {
+        //       startButton.classList.remove('disabled');
+        //     }
+        //   } else{
+        //     label.innerText = 'Add a search folder to get started';
+        //     // reset the label as there are no folders listed
+        //     if (!startButton.classList.contains('disabled')) {
+        //       startButton.classList.add('disabled');
+        //     }
+        //   }
+        }).catch(err => {
+          // console.log(err);
+        });
+      }
+      
+
+      function createRow_UserSearchPathsTable(searchPath){
+        
           //ul.className = 'collection';
           const li = document.createElement('li');
           li.className = 'list-group-item';
-          const itemText = document.createTextNode(result.filePaths);
+          const itemText = document.createTextNode(searchPath);
           li.appendChild(itemText);
           ul.appendChild(li);
 
@@ -111,10 +170,8 @@
               startButton.classList.add('disabled');
             }
           }
-        }).catch(err => {
-          // console.log(err);
-        });
-      }
+        }
+    
 
       function clickStartScan() {
         let folders = document.getElementById("folderslist").querySelectorAll('li');
@@ -165,6 +222,7 @@
           createRow(project);
         });
       });
+
 
       function sortTableAlphanumerically(colNum) {
         sortTable(colNum, "alpha");
