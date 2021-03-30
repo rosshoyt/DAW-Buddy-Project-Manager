@@ -34,6 +34,11 @@ ipcMain.on('readusersearchpaths', function(e){
 // @var filepath - full path string
 ipcMain.on('createupdateusersearchpaths', function(e, filePath){
     databaseController.addUserSearchDirectory(filePath);
+    // tell the renderer to pull the new data from the database, if there were changes
+    var newUserSearchDirectories = databaseController.readUserSearchDirectories();
+    //if('null' != newUserSearchDirectories){
+        windowController.mainWindow.webContents.send('updateusersearchpaths',newUserSearchDirectories.directories);
+    //}
 });
 
 // Catch getprojectdetail 
