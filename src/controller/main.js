@@ -20,6 +20,22 @@ app.on('ready', function () {
     windowController.createMainWindow();
 });
 
+ // reads the user's search paths from the database and updates the main window if any were found
+ipcMain.on('readusersearchpaths', function(e){
+    var userSearchDirs = databaseController.readUserSearchDirectories();
+    if(userSearchDirs == null){
+        return;
+    }
+    // if any entries were read, send to the main window
+    windowController.mainWindow.webContents.send('updateusersearchpaths', userSearchDirs.directories);
+})
+
+// creates or updates the user search paths entry in the database with a provided string path
+// @var filepath - full path string
+ipcMain.on('createupdateusersearchpaths', function(e, filePath){
+    databaseController.addUserSearchDirectory(filePath);
+});
+
 // Catch getprojectdetail 
 // Called when user wants to view a project's details in a detail window
 ipcMain.on('getprojectdetail', function (e, projectPath) {
