@@ -50,5 +50,9 @@ class DatabaseController {
         this.store.set(projectID, project);
     }
 
+
+    clearLocalDatabase(){
+        this.store.clear();
+    }
 }
 module.exports = DatabaseController
