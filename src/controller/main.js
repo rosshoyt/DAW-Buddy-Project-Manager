@@ -67,6 +67,13 @@ ipcMain.on('openitem', function (e, fullPath) {
     shell.showItemInFolder(preparedPath);
 });
 
+// Catch cleardb
+// Deletes all content from the local database
+// TODO allow clearing of specific types of data     
+ipcMain.on('cleardb', function(e){
+    databaseController.clearLocalDatabase();
+});
+
 // Perform the directory scan on array of directory paths to be searched
 // TODO Scan more than just the first (index=0) directory passed in
 ipcMain.on('startscan', function (e, directories) {
