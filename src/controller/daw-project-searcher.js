@@ -37,9 +37,12 @@ class DAWProjectSearcher {
         arrayOfProjectPaths = arrayOfProjectPaths || new AdvancedArray();
         var fileNames = fs.readdirSync(dirPath);
         var self = this;
+        
+        
         fileNames.forEach(function (file) {
             // get filesystem info on current file
             var filePath = dirPath + "/" + file;
+            try{
             var fsInfo = fs.statSync(filePath);
             if (fsInfo.isDirectory()) {
                 //dirBirthtime = fsInfo.birthtime;
@@ -111,7 +114,12 @@ class DAWProjectSearcher {
                     }
                 }
             }
+            // catch errors from file system access
+            } catch(error){
+                console.log(error);
+            }
         });
+    
         return arrayOfProjectPaths;
     }
 
