@@ -1,7 +1,12 @@
 const electron = require('electron');
-const Store = require('electron-store');
 const { app, ipcMain } = electron;
 const { shell } = require('electron');
+
+// require and configure dotenv
+require('dotenv').config();
+
+// SET ENV
+//process.env.NODE_ENV = 'production';
 
 const DAWProjectSearcher = require('./daw-project-searcher').DAWProjectSearcher;
 const WindowController = require('./window-controller');
@@ -10,9 +15,6 @@ const DatabaseController = require('./database-controller');
 let dawProjectSearcher = new DAWProjectSearcher();
 let databaseController = new DatabaseController();
 let windowController;
-
-// SET ENV
-//process.env.NODE_ENV = 'production';
 
 // Listen for app to be ready
 app.on('ready', function () {
@@ -36,9 +38,8 @@ ipcMain.on('createupdateusersearchpaths', function(e, filePath){
     databaseController.addUserSearchDirectory(filePath);
     // tell the renderer to pull the new data from the database, if there were changes
     var newUserSearchDirectories = databaseController.readUserSearchDirectories();
-    //if('null' != newUserSearchDirectories){
-        windowController.mainWindow.webContents.send('updateusersearchpaths',newUserSearchDirectories.directories);
-    //}
+    windowController.mainWindow.webContents.send('updateusersearchpaths',newUserSearchDirectories.directories);
+
 });
 
 // Catch getprojectdetail 
@@ -85,7 +86,3 @@ ipcMain.on('startscan', function (e, directories) {
      // TODO Refactor - create methods to send web content without interacting with window objects
     windowController.mainWindow.webContents.send('scan:complete:allentries', projects);
 });
-
-
-
-
