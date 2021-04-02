@@ -25,7 +25,8 @@ class DatabaseController {
         var userSearchDirectories;
         // check if the entry exists already
         if(!this.store.has(this.USER_SEARCH_DIRECTORIES_ID)){
-            // it hasn't been added yet, so we'll create one            userSearchDirectories = new UserSearchDirectories();
+            // it hasn't been added yet, so we'll create one            
+            userSearchDirectories = new UserSearchDirectories();
         } else{
             // create copy of the usersearchdirectories entry read from database
             userSearchDirectories = new UserSearchDirectories(this.store.get(this.USER_SEARCH_DIRECTORIES_ID));
