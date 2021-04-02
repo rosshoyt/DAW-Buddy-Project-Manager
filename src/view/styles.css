@@ -22,6 +22,7 @@ tr{
 label{
     font-style: italic;
 }
+
 .container {
     margin: 0 auto;
     max-width: 1920px;
@@ -30,7 +31,7 @@ label{
 
 @media only screen and (min-width: 601px) {
     .container {
-        width: 90%;
+        width: 98%;
     }
 }
 
