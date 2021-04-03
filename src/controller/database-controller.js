@@ -1,6 +1,6 @@
 const Store = require('electron-store');
-const AdvancedArray = require('../common/advanced-array');
 const UserSearchDirectories = require('../model/user-search-directories');
+const MongoDBCloudController = require('../controller/mongo-db-cloud-controller');
 
 // class which manages the local electron-store database
 class DatabaseController {
@@ -8,6 +8,7 @@ class DatabaseController {
     constructor(){
         this.store = new Store();
         this.USER_SEARCH_DIRECTORIES_ID = "1819046283746"; // temporary key for user search directories 
+        this.cloudDB = new MongoDBCloudController();
     }
 
     // method that adds a full path string to the user's list of search directories
