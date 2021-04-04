@@ -25,13 +25,21 @@
     <br>
     <div class="container">
         <button class="btn btn-warning"onclick="clearLocalDB_ButtonPressed()">Clear Local JSON Database</button>
+        <button class="btn btn-info btn-lg float-right" onclick="backupToCloud_ButtonPressed()"><i
+          class="material-icons">backup</i> Backup to Cloud</a>
     </div>
+
     <script>
         
 
         function clearLocalDB_ButtonPressed(){
             // Clear items
             ipcRenderer.send('cleardb');
+        }
+        
+        // click handler method that sends backuptocloud message to main thread
+        function backupToCloud_ButtonPressed(){
+          ipcRenderer.send('backuptocloud');
         }
     </script>
 </body>
