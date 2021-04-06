@@ -16,9 +16,9 @@ class DAWProjectSearcher {
 
     // Function that scans the directory and all sub directories to find DAW projects, 
     // and returns an AdvancedArray of projects found
-    searchForProjects(directories) {
-        console.log("Finding DAW projects....");
-        const projectEntries = this.findDAWProjects(directories[0]);
+    getDAWProjects(directory) {
+        console.log("Finding DAW projects in " + directory);
+        const projectEntries = this.findDAWProjects(directory);
         console.log("Analyzing DAW projects");
         // Analyze each directory and extract database entries
         var self = this;

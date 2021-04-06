@@ -78,7 +78,7 @@ ipcMain.on('cleardb', function(e){
 // Perform the directory scan on array of directory paths to be searched
 // TODO Scan more than just the first (index=0) directory passed in
 ipcMain.on('startscan', function (e, directories) {
-    let projects = dawProjectSearcher.searchForProjects(directories);
+    let projects = dawProjectSearcher.getDAWProjects(directories[0]);
     projects.forEach(project => {
         //console.log(project);
         databaseController.createProject(project.dir.fullPath, project);
