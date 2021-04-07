@@ -75,14 +75,20 @@ ipcMain.on('cleardb', function(e){
     databaseController.clearLocalDatabase();
 });
 
-// Perform the directory scan on array of directory paths to be searched
-// TODO Scan more than just the first (index=0) directory passed in
+// Performs the scan on array of directory paths to be searched
+// On completion, updates the database and main window with the discovered DAW projects
 ipcMain.on('startscan', function (e, directories) {
-    let projects = dawProjectSearcher.getDAWProjects(directories[0]);
+    let projects = [];
+    directories.forEach(directory =>{
+        projects = projects.concat(dawProjectSearcher.getDAWProjects(directory));
+    });
+    
     projects.forEach(project => {
         //console.log(project);
         databaseController.createProject(project.dir.fullPath, project);
     });
-     // TODO Refactor - create methods to send web content without interacting with window objects
+    
+     // TODO could have mainWindow refresh and get the data itself
     windowController.mainWindow.webContents.send('scan:complete:allentries', projects);
+});
 });
