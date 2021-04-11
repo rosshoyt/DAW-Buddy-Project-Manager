@@ -91,4 +91,3 @@ ipcMain.on('startscan', function (e, directories) {
      // TODO could have mainWindow refresh and get the data itself
     windowController.mainWindow.webContents.send('scan:complete:allentries', projects);
 });
-});
