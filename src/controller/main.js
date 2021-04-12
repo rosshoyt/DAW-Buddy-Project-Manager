@@ -19,7 +19,7 @@ let windowController;
 // Listen for app to be ready
 app.on('ready', function () {
     windowController = new WindowController(1920, 1080);
-    windowController.createMainWindow();
+    windowController.createLoginWindow();
 });
 
  // reads the user's search paths from the database and updates the main window if any were found
@@ -56,7 +56,7 @@ ipcMain.on('openitem', function (e, fullPath) {
     // TODO decide if the paths should be reformatted to fit runtime OS's format -
     // TODO could add 'Host OS' data field to scanned project, or a host system ID, to check if we're on the system that the original project was scanned from.
     // TODO and/or, handle errors when path can't be shown in folder
-    
+
     // switch (process.platform) {
     //     case 'win32':
     //         // TODO Debug and test windows paths
