@@ -29,6 +29,15 @@ label{
     width: 90%;
 }
 
+
+.login-container {
+    margin: 0 auto;
+    max-width: 1920px;
+    width: 60%;
+}
+
+
+
 @media only screen and (min-width: 601px) {
     .container {
         width: 98%;
