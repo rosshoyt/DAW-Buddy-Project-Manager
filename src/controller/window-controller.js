@@ -5,11 +5,37 @@ const { BrowserWindow, Menu, app } = electron;
 
 class WindowController {
     constructor(mainWindowWidth = 1024, mainWindowHeight = 768) {
+        this.loginWindow;
         this.mainWindow;
         this.detailWindows = new Set();
         this.mainWindowWidth = mainWindowWidth;
         this.mainWindowHeight = mainWindowHeight;
     }
+    
+    createLoginWindow(){
+        this.loginWindow = new BrowserWindow({
+            width: this.mainWindowWidth,
+            height: this.mainWindowHeight,
+            webPreferences: {
+                nodeIntegration: true
+            }
+        });
+        this.loginWindow.loadURL(url.format({
+            pathname: path.join(__dirname, '../view/loginWindow.html'),
+            protocol: 'file:',
+            slashes: true
+        }));
+
+        // Quit app when closed
+        this.loginWindow.on('closed', function () {
+            app.quit();
+        });
+    }
+
+
+    // TODO implement shared window creation function to avoid duplicated code
+    //createWindow(height, width){ return new BrowserWindow}
+
 
     createMainWindow() {
         // create new window
