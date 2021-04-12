@@ -19,7 +19,7 @@ let windowController;
 // Listen for app to be ready
 app.on('ready', function () {
     windowController = new WindowController(1920, 1080);
-    windowController.createLoginWindow();
+    windowController.createMainWindow_Login();
 });
 
  // reads the user's search paths from the database and updates the main window if any were found

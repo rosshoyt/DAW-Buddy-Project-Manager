@@ -12,7 +12,8 @@ class WindowController {
         this.mainWindowHeight = mainWindowHeight;
     }
     
-    createLoginWindow(){
+    // creates the main application window and starts the user at the login page.
+    createMainWindow_Login(){
         this.loginWindow = new BrowserWindow({
             width: this.mainWindowWidth,
             height: this.mainWindowHeight,
