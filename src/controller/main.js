@@ -52,18 +52,22 @@ ipcMain.on('getprojectdetail', function (e, projectPath) {
 // Called when user requests to open a full path location in system explorer
 // TODO Debug Windows, Linux functionality
 ipcMain.on('openitem', function (e, fullPath) {
-    var preparedPath;
-    switch (process.platform) {
-        case 'win32':
-            // TODO Debug and test windows paths
-            preparedPath = fullPath.replace(/\//g, '\\');
-            break;
-        case 'linux':
-            preparedPath = "\"" + fullPath + "\"";
-            break;
-        default:
-            preparedPath = fullPath;
-    }
+    var preparedPath = fullPath;
+    // TODO decide if the paths should be reformatted to fit runtime OS's format -
+    // TODO could add 'Host OS' data field to scanned project, or a host system ID, to check if we're on the system that the original project was scanned from.
+    // TODO and/or, handle errors when path can't be shown in folder
+    
+    // switch (process.platform) {
+    //     case 'win32':
+    //         // TODO Debug and test windows paths
+    //         //preparedPath = fullPath.replace(/\//g, '\\');
+    //         break;
+    //     case 'linux':
+    //         preparedPath = "\"" + fullPath + "\"";
+    //         break;
+    //     default:
+    //         preparedPath = fullPath;
+    // }
     console.log('Main thread - opening in system file browser', preparedPath);
     shell.showItemInFolder(preparedPath);
 });
