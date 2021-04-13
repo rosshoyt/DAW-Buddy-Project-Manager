@@ -22,6 +22,11 @@ app.on('ready', function () {
     windowController.createMainWindow_Login();
 });
 
+// called when user presses login button
+ipcMain.on('login', function(e, userID, userPassword){
+    windowController.showMainWindow();
+});
+
  // reads the user's search paths from the database and updates the main window if any were found
 ipcMain.on('readusersearchpaths', function(e){
     var userSearchDirs = databaseController.readUserSearchDirectories();
@@ -30,7 +35,7 @@ ipcMain.on('readusersearchpaths', function(e){
     }
     // if any entries were read, send to the main window
     windowController.mainWindow.webContents.send('updateusersearchpaths', userSearchDirs.directories);
-})
+});
 
 // creates or updates the user search paths entry in the database with a provided string path
 // @var filepath - full path string

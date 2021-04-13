@@ -14,23 +14,28 @@ class WindowController {
     
     // creates the main application window and starts the user at the login page.
     createMainWindow_Login(){
-        this.loginWindow = new BrowserWindow({
+        this.mainWindow = new BrowserWindow({
             width: this.mainWindowWidth,
             height: this.mainWindowHeight,
             webPreferences: {
                 nodeIntegration: true
             }
         });
-        this.loginWindow.loadURL(url.format({
+        
+        // Set window size
+        this.mainWindow.setSize(this.mainWindowWidth, this.mainWindowHeight);
+
+        // start user at the login page
+        this.mainWindow.loadURL(url.format({
             pathname: path.join(__dirname, '../view/loginWindow.html'),
             protocol: 'file:',
-            slashes: true
+            // // slashes: true
         }));
-
         // Quit app when closed
-        this.loginWindow.on('closed', function () {
+        this.mainWindow.on('closed', function () {
             app.quit();
         });
+
     }
 
 
@@ -38,29 +43,16 @@ class WindowController {
     //createWindow(height, width){ return new BrowserWindow}
 
 
-    createMainWindow() {
-        // create new window
-        this.mainWindow = new BrowserWindow({
-            width: this.mainWindowWidth,
-            height: this.mainWindowHeight,
-            // TODO Implement secure solution https://stackoverflow.com/a/57049268
-            // Solves Uncaught ReferenceError: 'require' is not defined
-            webPreferences: {
-                nodeIntegration: true
-            }
-        });
+    showMainWindow() {
+        console.log("showing main window");
         // load html into window
-        this.mainWindow.loadURL(url.format({
+        this.mainWindow.loadURL(
+            url.format({
             pathname: path.join(__dirname, '../view/mainWindow.html'),
             protocol: 'file:',
             slashes: true
         }));
-        // Quit app when closed
-        this.mainWindow.on('closed', function () {
-            app.quit();
-        });
-        // Set window size
-        //this.mainWindow.setSize(this.mainWindowWidth, this.mainWindowHeight);
+        
 
         // Build menu from template
         const mainMenu = Menu.buildFromTemplate(getMenuTemplate());
