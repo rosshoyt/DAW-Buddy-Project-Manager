@@ -11,9 +11,11 @@ require('dotenv').config();
 const DAWProjectSearcher = require('./daw-project-searcher').DAWProjectSearcher;
 const WindowController = require('./window-controller');
 const DatabaseController = require('./database-controller');
+const AuthenticationController = require('./authentication-controller');
 
 let dawProjectSearcher = new DAWProjectSearcher();
 let databaseController = new DatabaseController();
+let authenticationController = new AuthenticationController();
 let windowController;
 
 // Listen for app to be ready
@@ -24,7 +26,15 @@ app.on('ready', function () {
 
 // called when user presses login button
 ipcMain.on('login', function(e, userID, userPassword){
-    windowController.showMainWindow();
+    if(authenticationController.tryLogin(userID, userPassword)){
+        // success, show the main page
+        windowController.showMainWindow();
+
+        // TODO store username in database if user wanted to be remembered?
+
+        return; // exit function
+    }
+    // TODO send login-failed message to main page
 });
 
  // reads the user's search paths from the database and updates the main window if any were found
