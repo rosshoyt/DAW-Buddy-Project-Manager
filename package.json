@@ -1,7 +1,7 @@
 {
   "name": "daw-buddy",
   "version": "0.1.0",
-  "main": "electron/Main.js",
+  "main": "src/electron/Main.js",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
