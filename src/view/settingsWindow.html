@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Settings</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+    integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+  <link rel="stylesheet" href="./styles.css" type="text/css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.css">
+  <script>
+    const { ipcRenderer } = require('electron');
+  </script>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-primary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <i class="material-icons">music_note</i>
+            DAW Buddy - The Music Project Manager
+          </a>
+        </div>
+      </nav>
+    <br>
+    <div class="container">
+        <button class="btn btn-warning"onclick="clearLocalDB_ButtonPressed()">Clear Local JSON Database</button>
+        <button class="btn btn-info btn-lg float-right" onclick="backupToCloud_ButtonPressed()"><i
+          class="material-icons">backup</i> Backup to Cloud</a>
+    </div>
+
+    <script>
+        
+
+        function clearLocalDB_ButtonPressed(){
+            // Clear items
+            ipcRenderer.send('cleardb');
+        }
+        
+        // click handler method that sends backuptocloud message to main thread
+        function backupToCloud_ButtonPressed(){
+          ipcRenderer.send('backuptocloud');
+        }
+    </script>
+</body>
+</html>
